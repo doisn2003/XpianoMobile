@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/bloc/app_bloc_observer.dart';
+import 'core/theme/app_theme.dart';
 import 'injection_container.dart' as di;
+import 'presentation/main/main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,43 +25,14 @@ class XPianoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // MultiBlocProvider chứa danh sách các Bloc dùng chung (Global State)
-    return MultiBlocProvider(
-      providers: [
-        // VD: BlocProvider(create: (_) => di.sl<AuthBloc>()..add(CheckAuthEvent())),
-      ],
-      child: MaterialApp(
-        title: 'Xpiano App',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          // Bảng màu đẹp, chuẩn mực
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-        ),
-        home: const PlaceholderScreen(),
-      ),
-    );
-  }
-}
-
-// Màn hình tạm để test
-class PlaceholderScreen extends StatelessWidget {
-  const PlaceholderScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Xpiano Mobile', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-      body: const Center(
-        child: Text(
-          'Nền móng BLoC & Dio đã được thiết lập!',
-          style: TextStyle(fontSize: 18, color: Colors.blueGrey),
-        ),
-      ),
+    // Tạm thời comment MultiBlocProvider vì package:nested yêu cầu danh sách providers không được rỗng
+    return MaterialApp(
+      title: 'Xpiano App',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system, // Hoặc ThemeMode.light theo design
+      home: const MainScreen(),
     );
   }
 }

@@ -22,24 +22,18 @@ class XPianoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // MultiBlocProvider chứa danh sách các Bloc dùng chung (Global State)
-    return MultiBlocProvider(
-      providers: [
-        // VD: BlocProvider(create: (_) => di.sl<AuthBloc>()..add(CheckAuthEvent())),
-      ],
-      child: MaterialApp(
-        title: 'Xpiano App',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          // Bảng màu đẹp, chuẩn mực
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
+    return MaterialApp(
+      title: 'Xpiano App',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        // Bảng màu đẹp, chuẩn mực
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.light,
         ),
-        home: const PlaceholderScreen(),
+        useMaterial3: true,
       ),
+      home: const PlaceholderScreen(),
     );
   }
 }

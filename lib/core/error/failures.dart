@@ -26,6 +26,5 @@ class CacheFailure extends Failure {
 
 // Lỗi Token 401
 class UnauthorizedFailure extends Failure {
-  const UnauthorizedFailure([String message = 'Phiên đăng nhập hết hạn.'])
-      : super(message);
+  const UnauthorizedFailure([super.message = 'Phiên đăng nhập hết hạn.']);
 }

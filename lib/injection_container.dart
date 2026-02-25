@@ -2,7 +2,13 @@ import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'core/network/dio_client.dart';
+import 'data/datasources/home_remote_data_source.dart';
+import 'presentation/home/bloc/home_feed_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -25,8 +31,18 @@ Future<void> init() async {
   //! Core
   // Đăng ký DioClient làm nền tảng gọi API cho toàn bộ ứng dụng
   sl.registerLazySingleton(() => DioClient(logger: sl()));
+  
+  // Đăng ký SupabaseClient để fetch Data Public
+  sl.registerLazySingleton(() => Supabase.instance.client);
 
   //! Features
-  // Nơi đây sẽ tiêm phụ thuộc các Repositories, UseCases (Ví dụ sau này: AuthRepository, PianoRepository...)
-  // Các Injection sẽ theo dạng BLoC -> Use Case -> Repo -> Remote DataSource -> DioClient (bên trên)
+  // Home Feature
+  sl.registerLazySingleton<HomeRemoteDataSource>(
+    () => HomeRemoteDataSourceImpl(
+      dioClient: sl(),
+      supabaseClient: sl(),
+    ),
+  );
+  
+  sl.registerFactory(() => HomeFeedBloc(dataSource: sl()));
 }

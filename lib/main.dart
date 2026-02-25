@@ -6,9 +6,21 @@ import 'core/theme/app_theme.dart';
 import 'injection_container.dart' as di;
 import 'presentation/main/main_screen.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Load biến môi trường
+  await dotenv.load(fileName: ".env");
+
+  // Khởi tạo Supabase Client
+  await Supabase.initialize(
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY'] ?? '',
+  );
+
   // Khởi tạo Dependency Injection (Dio, Interceptors, Repos...)
   await di.init();
 

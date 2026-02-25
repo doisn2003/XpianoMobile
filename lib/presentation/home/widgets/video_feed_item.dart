@@ -1,19 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:video_player/video_player.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../data/models/post_model.dart';
+import '../bloc/home_feed_bloc.dart';
+import '../bloc/home_feed_event.dart';
 
-class VideoFeedItem extends StatelessWidget {
-  const VideoFeedItem({super.key});
+class VideoFeedItem extends StatefulWidget {
+  final PostModel post;
+
+  const VideoFeedItem({super.key, required this.post});
+
+  @override
+  State<VideoFeedItem> createState() => _VideoFeedItemState();
+}
+
+class _VideoFeedItemState extends State<VideoFeedItem> {
+  VideoPlayerController? _videoController;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.post.mediaType == 'video' && widget.post.mediaUrls.isNotEmpty) {
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(widget.post.mediaUrls.first))
+        ..initialize().then((_) {
+          _videoController!.setLooping(true);
+          _videoController!.play();
+          setState(() {});
+        });
+    }
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final post = widget.post;
+    final String mediaUrl = post.mediaUrls.isNotEmpty 
+        ? post.mediaUrls.first 
+        : 'https://images.unsplash.com/photo-1552422535-c45813c61732'; // Fallback
+
     return Stack(
       fit: StackFit.expand,
       children: [
-        // 1. Background Video / Image mock
-        Image.network(
-          'https://images.unsplash.com/photo-1552422535-c45813c61732?q=80&w=2070',
-          fit: BoxFit.cover,
-        ),
+        // 1. Background Video / Image
+        if (post.mediaType == 'video' && _videoController != null && _videoController!.value.isInitialized)
+          SizedBox.expand(
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: _videoController!.value.size.width,
+                height: _videoController!.value.size.height,
+                child: VideoPlayer(_videoController!),
+              ),
+            ),
+          )
+        else
+          Image.network(
+            mediaUrl,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => Container(color: Colors.grey[900]),
+          ),
         // Dark Overlay for better text readability
         Container(
           decoration: BoxDecoration(
@@ -87,9 +138,9 @@ class VideoFeedItem extends StatelessWidget {
               backgroundImage: NetworkImage('https://i.pravatar.cc/100?img=5'),
             ),
             const SizedBox(width: 8),
-            const Text(
-              'LinhPiano',
-              style: TextStyle(
+            Text(
+              widget.post.authorName ?? 'Người ẩn danh',
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -150,11 +201,20 @@ class VideoFeedItem extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Like
-          _buildActionItem(Icons.favorite_border, '1.2K'),
+          GestureDetector(
+            onTap: () {
+              context.read<HomeFeedBloc>().add(LikePostEvent(widget.post.id));
+            },
+            child: _buildActionItem(
+              Icons.favorite, 
+              widget.post.likesCount.toString(),
+              color: Colors.pinkAccent,
+            ),
+          ),
           const SizedBox(height: 20),
 
           // Comment
-          _buildActionItem(Icons.chat_bubble_outline, '345'),
+          _buildActionItem(Icons.chat_bubble_outline, widget.post.commentsCount.toString()),
           const SizedBox(height: 20),
 
           // Bookmark
@@ -168,10 +228,10 @@ class VideoFeedItem extends StatelessWidget {
     );
   }
 
-  Widget _buildActionItem(IconData icon, String text) {
+  Widget _buildActionItem(IconData icon, String text, {Color color = Colors.white}) {
     return Column(
       children: [
-        Icon(icon, color: Colors.white, size: 32),
+        Icon(icon, color: color, size: 32),
         const SizedBox(height: 4),
         Text(
           text,
@@ -186,9 +246,11 @@ class VideoFeedItem extends StatelessWidget {
   }
 
   Widget _buildCaption() {
-    return const Text(
-      '30 giây luyện ngón giúp tay mềm hơn 🎹\n#luyenngon #piano #xpiano #beginner',
-      style: TextStyle(
+    return Text(
+      widget.post.content ?? 'Bài viết từ Xpiano!',
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      style: const TextStyle(
         color: Colors.white,
         fontSize: 15,
         height: 1.4,
@@ -225,13 +287,13 @@ class VideoFeedItem extends StatelessWidget {
   }
 
   Widget _buildAudioTrack() {
-    return const Row(
+    return Row(
       children: [
-        Icon(Icons.volume_up, color: Colors.white, size: 16),
-        SizedBox(width: 8),
+        const Icon(Icons.music_note, color: Colors.white, size: 16),
+        const SizedBox(width: 8),
         Text(
-          'Âm thanh gốc • @AnNhien',
-          style: TextStyle(
+          'Âm thanh gốc • @${widget.post.authorName ?? ''}',
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 14,
             fontWeight: FontWeight.w500,

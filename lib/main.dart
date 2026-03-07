@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import 'core/bloc/app_bloc_observer.dart';
+import 'core/network/supabase_client.dart';
 import 'injection_container.dart' as di;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Tải biến môi trường
+  await dotenv.load(fileName: ".env");
+
+  // Khởi động Supabase
+  await AppSupabaseClient.initialize();
   
   // Khởi tạo Dependency Injection (Dio, Interceptors, Repos...)
   await di.init();

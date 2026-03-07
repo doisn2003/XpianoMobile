@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/network/dio_client.dart';
+import 'core/network/supabase_client.dart';
 
 final sl = GetIt.instance;
 
@@ -25,6 +26,9 @@ Future<void> init() async {
   //! Core
   // Đăng ký DioClient làm nền tảng gọi API cho toàn bộ ứng dụng
   sl.registerLazySingleton(() => DioClient(logger: sl()));
+
+  // Đăng ký SupabaseClient cho các API Public
+  sl.registerLazySingleton(() => AppSupabaseClient.client);
 
   //! Features
   // Nơi đây sẽ tiêm phụ thuộc các Repositories, UseCases (Ví dụ sau này: AuthRepository, PianoRepository...)

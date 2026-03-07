@@ -5,6 +5,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/presentation/pages/login_screen.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -81,25 +82,35 @@ class _MainScreenState extends State<MainScreen> {
       child: Scaffold(
         body: _pages[_currentIndex],
         bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Giữ cố định 5 tabs không bị đẩy
-        currentIndex: _currentIndex,
-        onTap: _onItemTapped,
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.piano), label: 'Pianos'),
-          BottomNavigationBarItem(
-            // Nút (+) tạo điểm nhấn
-            icon: Icon(Icons.add_circle, size: 40, color: Colors.deepPurple),
-            label: '',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Khám phá'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Hồ Sơ'),
-        ],
-      ),
+          type: BottomNavigationBarType.fixed, // Giữ cố định 5 tabs không bị đẩy
+          currentIndex: _currentIndex,
+          onTap: _onItemTapped,
+          selectedItemColor: AppTheme.primaryGoldDark,
+          unselectedItemColor: AppTheme.textSecondary,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+          showSelectedLabels: true,
+          showUnselectedLabels: true,
+          items: [
+            const BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
+            const BottomNavigationBarItem(icon: Icon(Icons.piano), label: 'Pianos'),
+            BottomNavigationBarItem(
+              icon: Container(
+                width: 44,
+                height: 44,
+                margin: const EdgeInsets.only(top: 4),
+                decoration: BoxDecoration(
+                  gradient: AppTheme.goldGradient,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.add, color: Colors.white, size: 28),
+              ),
+              label: '',
+            ),
+            const BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: 'Khám phá'),
+            const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Hồ sơ'),
+          ],
+        ),
     ),
     );
   }
@@ -138,20 +149,18 @@ class ProfileTabScreen extends StatelessWidget {
     final authState = context.watch<AuthBloc>().state;
     bool isTeacher = false;
     String userName = "Khách";
-    String email = "";
 
     if (authState is AuthAuthenticated) {
       isTeacher = authState.user.isTeacher;
       userName = authState.user.fullName;
-      email = authState.user.email;
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hồ Sơ Của Tôi'),
+        title: Text(isTeacher ? 'Hồ sơ giáo viên' : 'Hồ sơ học viên'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.settings_outlined), // Giống hình bánh răng tròn
             onPressed: () {
               context.read<AuthBloc>().add(AuthLogoutRequested());
             },
@@ -166,10 +175,10 @@ class ProfileTabScreen extends StatelessWidget {
             child: ListTile(
               leading: const CircleAvatar(child: Icon(Icons.person)),
               title: Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(email),
+              subtitle: Text(isTeacher ? 'Giáo viên' : 'Học viên', style: const TextStyle(color: AppTheme.textSecondary)),
               trailing: Chip(
                 label: Text(isTeacher ? 'Giáo viên' : 'Học viên', style: const TextStyle(color: Colors.white)),
-                backgroundColor: isTeacher ? Colors.orange : Colors.blue,
+                backgroundColor: isTeacher ? AppTheme.primaryGold : Colors.blueGrey,
               ),
             ),
           ),
@@ -177,37 +186,47 @@ class ProfileTabScreen extends StatelessWidget {
 
           // Options for everyone
           const ListTile(
-            leading: Icon(Icons.shopping_bag),
+            leading: Icon(Icons.shopping_bag, color: AppTheme.textPrimary),
             title: Text('Khóa học của tôi'),
             trailing: Icon(Icons.chevron_right),
           ),
           const ListTile(
-            leading: Icon(Icons.history),
+            leading: Icon(Icons.history, color: AppTheme.textPrimary),
             title: Text('Lịch sử đơn hàng'),
             trailing: Icon(Icons.chevron_right),
           ),
 
           // Options for Teacher only (Conditional UI render)
           if (isTeacher) ...[
-            const Divider(height: 40, thickness: 2),
-            const Text('Khu vực Giáo viên', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.orange)),
+            const Divider(height: 40, thickness: 1),
+            const Text('Khu vực Giáo viên', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primaryGoldDark)),
             const SizedBox(height: 10),
             ListTile(
-              leading: const Icon(Icons.upload_file, color: Colors.orange),
+              leading: const Icon(Icons.upload_file, color: AppTheme.primaryGold),
               title: const Text('Cập nhật Chứng chỉ'),
               onTap: () {},
             ),
             ListTile(
-              leading: const Icon(Icons.create, color: Colors.orange),
+              leading: const Icon(Icons.create, color: AppTheme.primaryGold),
               title: const Text('Quản lý khóa học (CMS)'),
               onTap: () {},
             ),
             ListTile(
-              leading: const Icon(Icons.bar_chart, color: Colors.orange),
+              leading: const Icon(Icons.bar_chart, color: AppTheme.primaryGold),
               title: const Text('Thống kê thu nhập'),
               onTap: () {},
             ),
-          ]
+          ],
+          
+          const Divider(height: 40),
+          Center(
+            child: TextButton(
+              onPressed: () {
+                context.read<AuthBloc>().add(AuthLogoutRequested());
+              },
+              child: const Text('Đăng xuất', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+            ),
+          ),
         ],
       ),
     );

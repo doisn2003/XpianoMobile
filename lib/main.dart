@@ -9,6 +9,8 @@ import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/pages/login_screen.dart';
 import 'injection_container.dart' as di;
 
+import 'core/theme/app_theme.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -43,13 +45,7 @@ class XPianoApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Xpiano App',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.deepPurple,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.lightTheme,
         home: const LoginScreen(),
       ),
     );

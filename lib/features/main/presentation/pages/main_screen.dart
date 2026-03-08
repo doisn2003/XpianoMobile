@@ -5,6 +5,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/presentation/pages/login_screen.dart';
+import '../../../piano/presentation/pages/piano_list_screen.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class MainScreen extends StatefulWidget {
@@ -19,7 +20,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     const PlaceholderScreen(title: 'Home Feed', icon: Icons.home),
-    const PlaceholderScreen(title: 'Pianos Store', icon: Icons.piano),
+    const PianoListScreen(),
     const SizedBox(), // Nơi giữ Tab 2 (Nút cộng) - không render vì có BottomSheet can thiệp
     const PlaceholderScreen(title: 'Khám Phá Khóa Học', icon: Icons.explore),
     const ProfileTabScreen(), // Tab Hồ sơ sẽ check logic hiển thị UI cho Teacher
@@ -69,49 +70,39 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthUnauthenticated) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
-            (route) => false,
-          );
-        }
-      },
-      child: Scaffold(
-        body: _pages[_currentIndex],
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed, // Giữ cố định 5 tabs không bị đẩy
-          currentIndex: _currentIndex,
-          onTap: _onItemTapped,
-          selectedItemColor: AppTheme.primaryGoldDark,
-          unselectedItemColor: AppTheme.textSecondary,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
-          showSelectedLabels: true,
-          showUnselectedLabels: true,
-          items: [
-            const BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
-            const BottomNavigationBarItem(icon: Icon(Icons.piano), label: 'Pianos'),
-            BottomNavigationBarItem(
-              icon: Container(
-                width: 44,
-                height: 44,
-                margin: const EdgeInsets.only(top: 4),
-                decoration: BoxDecoration(
-                  gradient: AppTheme.goldGradient,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.add, color: Colors.white, size: 28),
+    // Không force redirect LoginScreen khi Unauthenticated — khách có thể dùng app tự do
+    return Scaffold(
+      body: _pages[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _currentIndex,
+        onTap: _onItemTapped,
+        selectedItemColor: AppTheme.primaryGoldDark,
+        unselectedItemColor: AppTheme.textSecondary,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        items: [
+          const BottomNavigationBarItem(icon: Icon(Icons.home_filled), label: 'Home'),
+          const BottomNavigationBarItem(icon: Icon(Icons.piano), label: 'Pianos'),
+          BottomNavigationBarItem(
+            icon: Container(
+              width: 44,
+              height: 44,
+              margin: const EdgeInsets.only(top: 4),
+              decoration: BoxDecoration(
+                gradient: AppTheme.goldGradient,
+                borderRadius: BorderRadius.circular(12),
               ),
-              label: '',
+              child: const Icon(Icons.add, color: Colors.white, size: 28),
             ),
-            const BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: 'Khám phá'),
-            const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Hồ sơ'),
-          ],
-        ),
-    ),
+            label: '',
+          ),
+          const BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: 'Khám phá'),
+          const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Hồ sơ'),
+        ],
+      ),
     );
   }
 }
@@ -140,51 +131,58 @@ class PlaceholderScreen extends StatelessWidget {
   }
 }
 
-/// Màn hình Hồ Sơ tích hợp Logic check Role giữa User/Teacher
+/// Màn hình Hồ Sơ — hiển thị nút Đăng nhập nếu chưa Auth, hoặc thông tin user nếu đã Auth
 class ProfileTabScreen extends StatelessWidget {
   const ProfileTabScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final authState = context.watch<AuthBloc>().state;
-    bool isTeacher = false;
-    String userName = "Khách";
 
-    if (authState is AuthAuthenticated) {
-      isTeacher = authState.user.isTeacher;
-      userName = authState.user.fullName;
+    // Khách chưa đăng nhập
+    if (authState is! AuthAuthenticated) {
+      return _buildGuestProfile(context);
     }
+
+    // Đã đăng nhập
+    final user = authState.user;
+    final isTeacher = user.isTeacher;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isTeacher ? 'Hồ sơ giáo viên' : 'Hồ sơ học viên'),
+        title: Text(isTeacher ? 'Hồ sơ giáo viên' : 'Hồ sơ'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined), // Giống hình bánh răng tròn
-            onPressed: () {
-              context.read<AuthBloc>().add(AuthLogoutRequested());
-            },
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () {},
           )
         ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // Basic Info
+          // User card
           Card(
             child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.person)),
-              title: Text(userName, style: const TextStyle(fontWeight: FontWeight.bold)),
+              leading: CircleAvatar(
+                backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
+                child: Text(
+                  user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
+                  style: const TextStyle(color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+              ),
+              title: Text(user.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text(isTeacher ? 'Giáo viên' : 'Học viên', style: const TextStyle(color: AppTheme.textSecondary)),
               trailing: Chip(
-                label: Text(isTeacher ? 'Giáo viên' : 'Học viên', style: const TextStyle(color: Colors.white)),
+                label: Text(isTeacher ? 'Giáo viên' : 'Học viên', style: const TextStyle(color: Colors.white, fontSize: 12)),
                 backgroundColor: isTeacher ? AppTheme.primaryGold : Colors.blueGrey,
+                padding: EdgeInsets.zero,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
           ),
           const SizedBox(height: 20),
 
-          // Options for everyone
           const ListTile(
             leading: Icon(Icons.shopping_bag, color: AppTheme.textPrimary),
             title: Text('Khóa học của tôi'),
@@ -196,7 +194,6 @@ class ProfileTabScreen extends StatelessWidget {
             trailing: Icon(Icons.chevron_right),
           ),
 
-          // Options for Teacher only (Conditional UI render)
           if (isTeacher) ...[
             const Divider(height: 40, thickness: 1),
             const Text('Khu vực Giáo viên', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primaryGoldDark)),
@@ -217,7 +214,7 @@ class ProfileTabScreen extends StatelessWidget {
               onTap: () {},
             ),
           ],
-          
+
           const Divider(height: 40),
           Center(
             child: TextButton(
@@ -228,6 +225,62 @@ class ProfileTabScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGuestProfile(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Hồ sơ')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryGold.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.person_outline, size: 40, color: AppTheme.primaryGold),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Chào mừng đến Xpiano!',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Đăng nhập để trải nghiệm đầy đủ tính năng',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryGold,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: const Text('ĐĂNG NHẬP', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

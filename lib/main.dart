@@ -6,7 +6,7 @@ import 'core/bloc/app_bloc_observer.dart';
 import 'core/network/supabase_client.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
-import 'features/auth/presentation/pages/login_screen.dart';
+import 'features/main/presentation/pages/main_screen.dart';
 import 'injection_container.dart' as di;
 
 import 'core/theme/app_theme.dart';
@@ -38,7 +38,7 @@ class XPianoApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<AuthBloc>(
-          // Kiểm tra auth ngay khi app khởi động để quyết định Home vs Login
+          // Kiểm tra auth ngay khi app khởi động — nếu không có token thì AuthUnauthenticated (khách vẫn vào Home)
           create: (_) => di.sl<AuthBloc>()..add(AuthCheckRequested()),
         ),
       ],
@@ -46,7 +46,7 @@ class XPianoApp extends StatelessWidget {
         title: 'Xpiano App',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const LoginScreen(),
+        home: const MainScreen(),
       ),
     );
   }

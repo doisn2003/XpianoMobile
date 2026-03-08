@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/app_date_range_picker.dart';
 import '../../../../injection_container.dart' as di;
 import '../../domain/repositories/piano_repository.dart';
 import '../bloc/piano_order_bloc.dart';
@@ -13,6 +14,7 @@ class PianoOrderSheet extends StatefulWidget {
   final int pianoId;
   final String pianoName;
   final int pricePerDay;
+  final int? price;
   final String orderType; // 'buy' or 'rent'
 
   const PianoOrderSheet({
@@ -20,6 +22,7 @@ class PianoOrderSheet extends StatefulWidget {
     required this.pianoId,
     required this.pianoName,
     required this.pricePerDay,
+    this.price,
     required this.orderType,
   });
 
@@ -28,6 +31,7 @@ class PianoOrderSheet extends StatefulWidget {
     required int pianoId,
     required String pianoName,
     required int pricePerDay,
+    int? price,
     required String orderType,
   }) {
     return showModalBottomSheet(
@@ -40,6 +44,7 @@ class PianoOrderSheet extends StatefulWidget {
           pianoId: pianoId,
           pianoName: pianoName,
           pricePerDay: pricePerDay,
+          price: price,
           orderType: orderType,
         ),
       ),
@@ -62,23 +67,28 @@ class _PianoOrderSheetState extends State<PianoOrderSheet> {
     return _endDate!.difference(_startDate!).inDays;
   }
 
+  int _calculateRentalPrice() {
+    if (_startDate == null || _endDate == null) return 0;
+    int days = _rentalDays;
+    if (days < 1) return 0;
+    
+    int basePrice = widget.pricePerDay * days;
+    if (days >= 8) return (basePrice * 0.85).round();
+    if (days >= 3) return (basePrice * 0.90).round();
+    return basePrice;
+  }
+
+  int _calculateBuyPrice() {
+    if (widget.price != null && widget.price! > 0) return widget.price!;
+    return widget.pricePerDay * 100;
+  }
+
+
   void _selectDateRange() async {
-    final picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppTheme.primaryGold,
-              onPrimary: Colors.white,
-              onSurface: AppTheme.textPrimary,
-            ),
-          ),
-          child: child!,
-        );
-      },
+    final picked = await AppDateRangePicker.show(
+      context,
+      initialStartDate: _startDate,
+      initialEndDate: _endDate,
     );
     if (picked != null) {
       setState(() {
@@ -190,28 +200,80 @@ class _PianoOrderSheetState extends State<PianoOrderSheet> {
               ),
               const SizedBox(height: 16),
 
-              // Ghi chú
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppTheme.bgCream,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.dividerColor),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.info_outline, color: AppTheme.primaryGold, size: 18),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Giá chính xác sẽ được tính từ hệ thống sau khi đặt hàng.',
-                        style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+              // Khối hiển thị giá tạm tính
+              if (widget.orderType == 'rent' && _startDate != null && _endDate != null && _rentalDays > 0) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Thời gian thuê: $_rentalDays ngày',
+                        style: TextStyle(fontSize: 14, color: Colors.blue.shade800, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                  ],
+                      if (_rentalDays >= 3) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '🎉 Giảm ${_rentalDays >= 8 ? '15%' : '10%'} cho thuê dài hạn!',
+                          style: TextStyle(fontSize: 12, color: Colors.green.shade600),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
+                const SizedBox(height: 12),
+              ],
+              
+              if (widget.orderType == 'buy' || (widget.orderType == 'rent' && _startDate != null && _endDate != null && _rentalDays > 0)) ...[
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppTheme.bgCream,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppTheme.dividerColor),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Tổng cộng:',
+                        style: TextStyle(fontSize: 16, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        currencyFormat.format(widget.orderType == 'buy' ? _calculateBuyPrice() : _calculateRentalPrice()),
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppTheme.primaryGoldDark),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ] else ...[
+                 Container(
+                   padding: const EdgeInsets.all(12),
+                   decoration: BoxDecoration(
+                     color: AppTheme.bgCream,
+                     borderRadius: BorderRadius.circular(10),
+                     border: Border.all(color: AppTheme.dividerColor),
+                   ),
+                   child: const Row(
+                     children: [
+                       Icon(Icons.info_outline, color: AppTheme.primaryGold, size: 18),
+                       SizedBox(width: 8),
+                       Expanded(
+                         child: Text(
+                           'Vui lòng chọn ngày để xem giá tạm tính.',
+                           style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                         ),
+                       ),
+                     ],
+                   ),
+                 ),
+                 const SizedBox(height: 20),
+              ],
 
               // Nút đặt hàng
               BlocBuilder<PianoOrderBloc, PianoOrderState>(
@@ -278,7 +340,7 @@ class _PianoOrderSheetState extends State<PianoOrderSheet> {
           children: [
             Icon(Icons.check_circle, color: Colors.green, size: 28),
             SizedBox(width: 8),
-            Text('Đặt hàng thành công!'),
+            Expanded(child: Text('Đặt hàng thành công!')),
           ],
         ),
         content: Column(

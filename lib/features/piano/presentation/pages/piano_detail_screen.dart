@@ -268,6 +268,7 @@ class _PianoDetailView extends StatelessWidget {
                               pianoId: piano.id,
                               pianoName: piano.name,
                               pricePerDay: piano.pricePerDay,
+                              price: piano.price,
                               orderType: 'rent',
                             );
                           }
@@ -300,6 +301,7 @@ class _PianoDetailView extends StatelessWidget {
                                 pianoId: piano.id,
                                 pianoName: piano.name,
                                 pricePerDay: piano.pricePerDay,
+                                price: piano.price,
                                 orderType: 'buy',
                               );
                             }

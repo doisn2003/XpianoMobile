@@ -5,7 +5,9 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/presentation/pages/login_screen.dart';
+import '../../../auth/presentation/widgets/auth_required_dialog.dart';
 import '../../../piano/presentation/pages/piano_list_screen.dart';
+import '../../../feed/presentation/pages/create_post_screen.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class MainScreen extends StatefulWidget {
@@ -37,34 +39,18 @@ class _MainScreenState extends State<MainScreen> {
     }
   }
 
-  void _showUploadOptions() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text('Tải lên nội dung', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              ListTile(
-                leading: const Icon(Icons.video_call, color: Colors.deepPurple),
-                title: const Text('Quay Video mới'),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library, color: Colors.blue),
-                title: const Text('Chọn ảnh/video từ thư viện'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      },
+  void _showUploadOptions() async {
+    // Kiểm tra auth: phải đăng nhập mới được đăng bài
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) {
+      final loggedIn = await AuthRequiredDialog.show(context);
+      if (!loggedIn || !mounted) return;
+    }
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CreatePostScreen()),
     );
   }
 

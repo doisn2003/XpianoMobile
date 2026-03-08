@@ -11,6 +11,10 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/piano/data/datasources/piano_remote_data_source.dart';
 import 'features/piano/data/repositories/piano_repository_impl.dart';
 import 'features/piano/domain/repositories/piano_repository.dart';
+import 'features/feed/data/datasources/post_remote_data_source.dart';
+import 'features/feed/data/datasources/post_supabase_data_source.dart';
+import 'features/feed/data/repositories/post_repository_impl.dart';
+import 'features/feed/domain/repositories/post_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -66,5 +70,22 @@ Future<void> init() async {
   );
   // Lưu ý: PianoListBloc, PianoDetailBloc, PianoOrderBloc
   // được provide ở cấp Screen (theo Strategy §5) — không đăng ký ở đây.
+
+  // --- Feed ---
+  sl.registerLazySingleton<PostRemoteDataSource>(
+    () => PostRemoteDataSourceImpl(dioClient: sl()),
+  );
+
+  sl.registerLazySingleton<PostSupabaseDataSource>(
+    () => PostSupabaseDataSourceImpl(supabaseClient: sl()),
+  );
+
+  sl.registerLazySingleton<PostRepository>(
+    () => PostRepositoryImpl(
+      remoteDataSource: sl(),
+      supabaseDataSource: sl(),
+    ),
+  );
+  // Lưu ý: CreatePostBloc được provide ở cấp Screen — không đăng ký ở đây.
 }
 

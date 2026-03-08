@@ -163,9 +163,11 @@ Tài liệu này tổng hợp toàn bộ các API Backend của dự án Xpiano,
 
 ### Bài viết, Dòng thời gian & Tương tác (Posts)
 - `GET /api/posts/feed` : Nhận nội dung dòng thời gian (Bản tin). (Tùy chọn Auth).
+  - Query: `?cursor=ISO_TIMESTAMP&limit=20&type=general&media=video|image|none|all`
 - `GET /api/posts/user/:userId` : Nhận list danh sách bài đăng của một người định. (Tùy chọn Auth).
 - `GET /api/posts/:id` : Nội dung chi tiết một bài viết. (Tùy chọn Auth).
 - `POST /api/posts` : Đăng bài mới (Yêu cầu Auth).
+  - Body: `{ content, media_urls, media_type, post_type, related_course_id, visibility, title, hashtags[], location, thumbnail_url, duration, related_piano_id }`
 - `PUT /api/posts/:id` : Sửa/Cập nhật thông tin bài đăng (Yêu cầu Auth).
 - `DELETE /api/posts/:id` : Xóa bài đăng (Yêu cầu Auth).
 
@@ -176,6 +178,14 @@ Tài liệu này tổng hợp toàn bộ các API Backend của dự án Xpiano,
 - `POST /api/posts/:id/comments` : Viết Comment vào bài viết.
 - `GET /api/social/comments/:id/replies` : Lấy trả lời của 1 comment cụ thể.
 - `DELETE /api/social/comments/:id` : Xóa một comment cá nhân (Auth).
+
+*View & Share Tracking:*
+- `POST /api/posts/:id/view` : Ghi nhận lượt xem bài viết (Tùy chọn Auth). Unique per user/IP, client debounce ≥3s.
+- `POST /api/posts/:id/share` : Ghi nhận lượt chia sẻ (Yêu cầu Auth).
+
+*Hashtags:*
+- `GET /api/posts/hashtags/trending` : Lấy danh sách hashtag trending. Query: `?limit=20`. (Public).
+- `GET /api/posts/hashtags/search` : Tìm/gợi ý hashtag. Query: `?q=pia&limit=10`. (Public).
 
 ### Chat trực tiếp cá nhân (Messages - Yêu cầu Auth hoàn toàn)
 - `POST /api/messages/conversations` : Bắt đầu/Tạo cuộc trò chuyện 1-1.

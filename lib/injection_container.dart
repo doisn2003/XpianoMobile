@@ -8,6 +8,9 @@ import 'features/auth/data/datasources/auth_remote_data_source.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
+import 'features/piano/data/datasources/piano_remote_data_source.dart';
+import 'features/piano/data/repositories/piano_repository_impl.dart';
+import 'features/piano/domain/repositories/piano_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -47,6 +50,21 @@ Future<void> init() async {
     () => AuthRepositoryImpl(remoteDataSource: sl()),
   );
 
-  // BLoC
+  // BLoC (Global — AuthBloc cần tồn tại toàn bộ vòng đời app)
   sl.registerFactory(() => AuthBloc(authRepository: sl()));
+
+  // --- Piano ---
+  sl.registerLazySingleton<PianoRemoteDataSource>(
+    () => PianoRemoteDataSourceImpl(
+      supabaseClient: sl(),
+      dioClient: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<PianoRepository>(
+    () => PianoRepositoryImpl(remoteDataSource: sl()),
+  );
+  // Lưu ý: PianoListBloc, PianoDetailBloc, PianoOrderBloc
+  // được provide ở cấp Screen (theo Strategy §5) — không đăng ký ở đây.
 }
+

@@ -8,6 +8,7 @@ import '../../../auth/presentation/pages/login_screen.dart';
 import '../../../auth/presentation/widgets/auth_required_dialog.dart';
 import '../../../piano/presentation/pages/piano_list_screen.dart';
 import '../../../feed/presentation/pages/create_post_screen.dart';
+import '../../../feed/presentation/pages/feed_screen.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class MainScreen extends StatefulWidget {
@@ -19,23 +20,29 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  int _refreshCounter = 0;
 
-  final List<Widget> _pages = [
-    const PlaceholderScreen(title: 'Home Feed', icon: Icons.home),
-    const PianoListScreen(),
-    const SizedBox(), // Nơi giữ Tab 2 (Nút cộng) - không render vì có BottomSheet can thiệp
+  late List<Widget> _pages = _buildPages();
+
+  List<Widget> _buildPages() => [
+    FeedScreen(key: ValueKey('feed_$_refreshCounter')),
+    PianoListScreen(key: ValueKey('piano_$_refreshCounter')),
+    const SizedBox(), // Nút cộng — không render
     const PlaceholderScreen(title: 'Khám Phá Khóa Học', icon: Icons.explore),
-    const ProfileTabScreen(), // Tab Hồ sơ sẽ check logic hiển thị UI cho Teacher
+    const ProfileTabScreen(),
   ];
 
   void _onItemTapped(int index) {
     if (index == 2) {
-      // Bắt sự kiện ấn vào nút (+) Upload Post ở giữa
       _showUploadOptions();
-    } else {
+    } else if (index == _currentIndex) {
+      // Tap lại tab hiện tại → refresh page
       setState(() {
-        _currentIndex = index;
+        _refreshCounter++;
+        _pages = _buildPages();
       });
+    } else {
+      setState(() => _currentIndex = index);
     }
   }
 
@@ -48,17 +55,29 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     if (!mounted) return;
-    Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const CreatePostScreen()),
     );
+    
+    // Nếu tạo bài viết thành công, chuyển về trang Home và refresh
+    if (result == true && mounted) {
+      setState(() {
+        _currentIndex = 0;
+        _refreshCounter++;
+        _pages = _buildPages();
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     // Không force redirect LoginScreen khi Unauthenticated — khách có thể dùng app tự do
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,

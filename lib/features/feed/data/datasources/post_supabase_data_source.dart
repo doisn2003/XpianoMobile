@@ -21,10 +21,10 @@ class PostSupabaseDataSourceImpl implements PostSupabaseDataSource {
     int limit = 10,
     String? mediaType,
   }) async {
-    // Build query: posts + profiles (author info)
+    // Bước 1: Lấy posts
     var query = supabaseClient
         .from('posts')
-        .select('*, author:profiles!posts_user_id_fkey(id, full_name, avatar_url, role)')
+        .select()
         .eq('visibility', 'public');
 
     if (cursor != null) {
@@ -35,18 +35,40 @@ class PostSupabaseDataSourceImpl implements PostSupabaseDataSource {
       query = query.eq('media_type', mediaType);
     }
 
-    // order + limit must be at the end of the chain
     final data = await query
         .order('created_at', ascending: false)
         .limit(limit);
 
-    return (data as List).map((json) {
-      final map = Map<String, dynamic>.from(json);
-      // Supabase join trả author là object lồng, map đúng format
-      if (map['author'] is List && (map['author'] as List).isNotEmpty) {
-        map['author'] = map['author'][0];
+    final posts = (data as List).map((e) => Map<String, dynamic>.from(e)).toList();
+
+    if (posts.isEmpty) return [];
+
+    // Bước 2: Lấy author info từ profiles (batch query)
+    final userIds = posts.map((p) => p['user_id']).whereType<String>().toSet().toList();
+
+    Map<String, Map<String, dynamic>> authorMap = {};
+    if (userIds.isNotEmpty) {
+      try {
+        final profiles = await supabaseClient
+            .from('profiles')
+            .select('id, full_name, avatar_url, role')
+            .inFilter('id', userIds);
+        for (final profile in (profiles as List)) {
+          final p = Map<String, dynamic>.from(profile);
+          authorMap[p['id']] = p;
+        }
+      } catch (_) {
+        // Nếu không lấy được profiles, hiển thị posts mà không có author info
       }
-      return PostModel.fromJson(map);
+    }
+
+    // Bước 3: Gắn author vào mỗi post
+    return posts.map((json) {
+      final userId = json['user_id'];
+      if (userId != null && authorMap.containsKey(userId)) {
+        json['author'] = authorMap[userId];
+      }
+      return PostModel.fromJson(json);
     }).toList();
   }
 }

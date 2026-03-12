@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../domain/entities/post.dart';
+import '../../domain/entities/comment.dart';
 import '../../../../core/error/failures.dart';
 
 /// Repository interface cho Feed feature
@@ -48,4 +49,14 @@ abstract class PostRepository {
     required int fileSize,
     required String contentType,
   });
+
+  // ─── Comments ───
+  Future<Either<Failure, List<Comment>>> getComments(String postId, {String? cursor, int limit = 20});
+  Future<Either<Failure, Comment>> addComment(String postId, String content, {String? parentId});
+  Future<Either<Failure, List<Comment>>> getReplies(String commentId, {String? cursor, int limit = 20});
+  Future<Either<Failure, void>> deleteComment(String commentId);
+
+  // ─── User Profile ───
+  Future<Either<Failure, Map<String, dynamic>>> getUserPublicProfile(String userId);
+  Future<Either<Failure, List<Post>>> getUserPosts(String userId, {String? cursor, int limit = 10});
 }

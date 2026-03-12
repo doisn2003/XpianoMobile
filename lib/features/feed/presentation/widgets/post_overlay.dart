@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/user_avatar_widget.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../auth/presentation/widgets/auth_required_dialog.dart';
 import '../../domain/entities/post.dart';
 import '../bloc/feed_bloc.dart';
 import '../bloc/feed_event.dart';
+import '../pages/user_profile_screen.dart';
+import 'comment_bottom_sheet.dart';
 
 /// Overlay UI trên mỗi bài viết trong feed
 /// Bao gồm: Thông tin tác giả, tiêu đề, hashtags, nút tương tác
@@ -69,41 +75,81 @@ class _InteractionButtons extends StatelessWidget {
 
   const _InteractionButtons({required this.post, required this.iconColor, required this.textColor});
 
+  void _navigateToProfile(BuildContext context) async {
+    if (post.author == null) return;
+
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) {
+      final loggedIn = await AuthRequiredDialog.show(context);
+      if (!loggedIn || !context.mounted) return;
+    }
+
+    if (!context.mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UserProfileScreen(
+          userId: post.author!.id,
+          initialName: post.author!.fullName,
+          initialAvatarUrl: post.author!.avatarUrl,
+          initialRole: post.author!.role,
+        ),
+      ),
+    );
+  }
+
+  void _handleLike(BuildContext context) async {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) {
+      final loggedIn = await AuthRequiredDialog.show(context);
+      if (!loggedIn || !context.mounted) return;
+    }
+    if (!context.mounted) return;
+    context.read<FeedBloc>().add(FeedToggleLike(post.id, post.isLiked));
+  }
+
+  void _openComments(BuildContext context) async {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) {
+      final loggedIn = await AuthRequiredDialog.show(context);
+      if (!loggedIn || !context.mounted) return;
+    }
+    if (!context.mounted) return;
+    CommentBottomSheet.show(context, postId: post.id, commentsCount: post.commentsCount);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Avatar tác giả
-        if (post.author != null) ...[
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: AppTheme.primaryGold,
-            child: Text(
-              post.author!.fullName.isNotEmpty ? post.author!.fullName[0].toUpperCase() : '?',
-              style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-          ),
-          const SizedBox(height: 20),
-        ],
+        // Avatar tác giả — luôn hiển thị (fallback khi không có author)
+        UserAvatarWidget(
+          avatarUrl: post.author?.avatarUrl,
+          fullName: post.author?.fullName ?? 'U',
+          role: post.author?.role ?? 'user',
+          radius: 24,
+          onTap: post.author != null ? () => _navigateToProfile(context) : null,
+        ),
+        const SizedBox(height: 16),
 
-        // Like
+        // Like (yêu cầu đăng nhập)
         _ActionButton(
           icon: post.isLiked ? Icons.favorite : Icons.favorite_border,
           iconColor: post.isLiked ? const Color(0xFFE53935) : iconColor,
           textColor: textColor,
           count: post.likesCount,
-          onTap: () => context.read<FeedBloc>().add(FeedToggleLike(post.id, post.isLiked)),
+          onTap: () => _handleLike(context),
         ),
         const SizedBox(height: 16),
 
-        // Comment
+        // Comment (yêu cầu đăng nhập)
         _ActionButton(
           icon: Icons.chat_bubble_outline,
           iconColor: iconColor,
           textColor: textColor,
           count: post.commentsCount,
-          onTap: () {},
+          onTap: () => _openComments(context),
         ),
         const SizedBox(height: 16),
 

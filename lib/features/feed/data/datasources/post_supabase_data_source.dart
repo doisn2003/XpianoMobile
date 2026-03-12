@@ -43,14 +43,14 @@ class PostSupabaseDataSourceImpl implements PostSupabaseDataSource {
 
     if (posts.isEmpty) return [];
 
-    // Bước 2: Lấy author info từ profiles (batch query)
+    // Bước 2: Lấy author info từ VIEW public_profiles (bypass RLS, chỉ public fields)
     final userIds = posts.map((p) => p['user_id']).whereType<String>().toSet().toList();
 
     Map<String, Map<String, dynamic>> authorMap = {};
     if (userIds.isNotEmpty) {
       try {
         final profiles = await supabaseClient
-            .from('profiles')
+            .from('public_profiles')
             .select('id, full_name, avatar_url, role')
             .inFilter('id', userIds);
         for (final profile in (profiles as List)) {

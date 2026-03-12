@@ -1,7 +1,8 @@
 import '../models/post_model.dart';
+import '../models/comment_model.dart';
 import '../../../../core/network/dio_client.dart';
 
-/// Data source cho các thao tác qua Express API (write operations)
+/// Data source cho các thao tác qua Express API (write + logic-heavy)
 abstract class PostRemoteDataSource {
   Future<PostModel> createPost(Map<String, dynamic> postData);
   Future<Map<String, dynamic>> toggleLike(String postId, bool isCurrentlyLiked);
@@ -10,6 +11,16 @@ abstract class PostRemoteDataSource {
   Future<Map<String, String>> getSignedUploadUrl(Map<String, dynamic> body);
   Future<List<Map<String, dynamic>>> getTrendingHashtags({int limit = 20});
   Future<List<Map<String, dynamic>>> searchHashtags(String query, {int limit = 10});
+
+  // Comments
+  Future<List<CommentModel>> getComments(String postId, {String? cursor, int limit = 20});
+  Future<CommentModel> addComment(String postId, String content, {String? parentId});
+  Future<List<CommentModel>> getReplies(String commentId, {String? cursor, int limit = 20});
+  Future<void> deleteComment(String commentId);
+
+  // User profile
+  Future<Map<String, dynamic>> getUserPublicProfile(String userId);
+  Future<List<PostModel>> getUserPosts(String userId, {String? cursor, int limit = 10});
 }
 
 class PostRemoteDataSourceImpl implements PostRemoteDataSource {
@@ -71,5 +82,55 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
     final response = await dioClient.get('/posts/hashtags/search', queryParameters: {'q': query, 'limit': limit});
     final data = response.data['data'] as List? ?? [];
     return data.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
+  // ─── Comments ───
+
+  @override
+  Future<List<CommentModel>> getComments(String postId, {String? cursor, int limit = 20}) async {
+    final params = <String, dynamic>{'limit': limit};
+    if (cursor != null) params['cursor'] = cursor;
+    final response = await dioClient.get('/posts/$postId/comments', queryParameters: params);
+    final data = response.data['data'] as List? ?? [];
+    return data.map((e) => CommentModel.fromJson(Map<String, dynamic>.from(e))).toList();
+  }
+
+  @override
+  Future<CommentModel> addComment(String postId, String content, {String? parentId}) async {
+    final body = <String, dynamic>{'content': content};
+    if (parentId != null) body['parent_id'] = parentId;
+    final response = await dioClient.post('/posts/$postId/comments', data: body);
+    return CommentModel.fromJson(Map<String, dynamic>.from(response.data['data']));
+  }
+
+  @override
+  Future<List<CommentModel>> getReplies(String commentId, {String? cursor, int limit = 20}) async {
+    final params = <String, dynamic>{'limit': limit};
+    if (cursor != null) params['cursor'] = cursor;
+    final response = await dioClient.get('/social/comments/$commentId/replies', queryParameters: params);
+    final data = response.data['data'] as List? ?? [];
+    return data.map((e) => CommentModel.fromJson(Map<String, dynamic>.from(e))).toList();
+  }
+
+  @override
+  Future<void> deleteComment(String commentId) async {
+    await dioClient.delete('/social/comments/$commentId');
+  }
+
+  // ─── User Profile ───
+
+  @override
+  Future<Map<String, dynamic>> getUserPublicProfile(String userId) async {
+    final response = await dioClient.get('/social/users/$userId/public');
+    return Map<String, dynamic>.from(response.data['data'] ?? {});
+  }
+
+  @override
+  Future<List<PostModel>> getUserPosts(String userId, {String? cursor, int limit = 10}) async {
+    final params = <String, dynamic>{'limit': limit};
+    if (cursor != null) params['cursor'] = cursor;
+    final response = await dioClient.get('/posts/user/$userId', queryParameters: params);
+    final data = response.data['data'] as List? ?? [];
+    return data.map((e) => PostModel.fromJson(Map<String, dynamic>.from(e))).toList();
   }
 }

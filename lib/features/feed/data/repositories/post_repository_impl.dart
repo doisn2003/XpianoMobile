@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/post.dart';
+import '../../domain/entities/comment.dart';
 import '../../domain/repositories/post_repository.dart';
 import '../datasources/post_remote_data_source.dart';
 import '../datasources/post_supabase_data_source.dart';
@@ -21,7 +22,7 @@ class PostRepositoryImpl implements PostRepository {
     String? mediaType,
   }) async {
     try {
-      // Read-heavy: đọc trực tiếp từ Supabase cho tốc độ cao
+      // Read-heavy: đọc trực tiếp từ Supabase cho độ trễ siêu thấp
       final posts = await supabaseDataSource.getFeed(
         cursor: cursor,
         limit: limit,
@@ -134,6 +135,70 @@ class PostRepositoryImpl implements PostRepository {
         'contentType': contentType,
       });
       return Right(result);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  // ─── Comments ───
+
+  @override
+  Future<Either<Failure, List<Comment>>> getComments(String postId, {String? cursor, int limit = 20}) async {
+    try {
+      final comments = await remoteDataSource.getComments(postId, cursor: cursor, limit: limit);
+      return Right(comments);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Comment>> addComment(String postId, String content, {String? parentId}) async {
+    try {
+      final comment = await remoteDataSource.addComment(postId, content, parentId: parentId);
+      return Right(comment);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Comment>>> getReplies(String commentId, {String? cursor, int limit = 20}) async {
+    try {
+      final replies = await remoteDataSource.getReplies(commentId, cursor: cursor, limit: limit);
+      return Right(replies);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteComment(String commentId) async {
+    try {
+      await remoteDataSource.deleteComment(commentId);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  // ─── User Profile ───
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> getUserPublicProfile(String userId) async {
+    try {
+      final profile = await remoteDataSource.getUserPublicProfile(userId);
+      return Right(profile);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Post>>> getUserPosts(String userId, {String? cursor, int limit = 10}) async {
+    try {
+      final posts = await remoteDataSource.getUserPosts(userId, cursor: cursor, limit: limit);
+      return Right(posts);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

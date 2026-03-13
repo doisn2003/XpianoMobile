@@ -9,6 +9,7 @@ import '../../../auth/presentation/widgets/auth_required_dialog.dart';
 import '../../../piano/presentation/pages/piano_list_screen.dart';
 import '../../../feed/presentation/pages/create_post_screen.dart';
 import '../../../feed/presentation/pages/feed_screen.dart';
+import '../../../explore/presentation/pages/explore_screen.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class MainScreen extends StatefulWidget {
@@ -28,7 +29,7 @@ class _MainScreenState extends State<MainScreen> {
     FeedScreen(key: ValueKey('feed_$_refreshCounter')),
     PianoListScreen(key: ValueKey('piano_$_refreshCounter')),
     const SizedBox(), // Nút cộng — không render
-    const PlaceholderScreen(title: 'Khám Phá Khóa Học', icon: Icons.explore),
+    ExploreScreen(key: ValueKey('explore_$_refreshCounter')),
     const ProfileTabScreen(),
   ];
 
@@ -104,8 +105,8 @@ class _MainScreenState extends State<MainScreen> {
             ),
             label: '',
           ),
-          const BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: 'Khám phá'),
-          const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Hồ sơ'),
+          const BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: 'Khám Phá'),
+          const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Hồ Sơ'),
         ],
       ),
     );
@@ -259,7 +260,7 @@ class ProfileTabScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Đăng nhập để trải nghiệm đầy đủ tính năng',
+                ' Đăng nhập để trải nghiệm đầy đủ tính năng  Cùng Xpiano xây dựng cộng đồng!',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
               ),

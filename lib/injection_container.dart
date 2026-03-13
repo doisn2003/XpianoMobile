@@ -15,6 +15,12 @@ import 'features/feed/data/datasources/post_remote_data_source.dart';
 import 'features/feed/data/datasources/post_supabase_data_source.dart';
 import 'features/feed/data/repositories/post_repository_impl.dart';
 import 'features/feed/domain/repositories/post_repository.dart';
+import 'features/explore/data/datasources/course_remote_data_source.dart';
+import 'features/explore/data/repositories/course_repository_impl.dart';
+import 'features/explore/domain/repositories/course_repository.dart';
+import 'features/chat/data/datasources/chat_remote_data_source.dart';
+import 'features/chat/data/repositories/chat_repository_impl.dart';
+import 'features/chat/domain/repositories/chat_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -87,5 +93,26 @@ Future<void> init() async {
     ),
   );
   // Lưu ý: CreatePostBloc được provide ở cấp Screen — không đăng ký ở đây.
+
+  // --- Explore (Courses) ---
+  sl.registerLazySingleton<CourseRemoteDataSource>(
+    () => CourseRemoteDataSourceImpl(dioClient: sl()),
+  );
+
+  sl.registerLazySingleton<CourseRepository>(
+    () => CourseRepositoryImpl(remoteDataSource: sl()),
+  );
+  // BLoCs (CourseList, CourseDetail, MyCourses, CourseSchedule, CourseOrder)
+  // được provide ở cấp Screen — không đăng ký ở đây.
+
+  // --- Chat ---
+  sl.registerLazySingleton<ChatRemoteDataSource>(
+    () => ChatRemoteDataSourceImpl(dioClient: sl()),
+  );
+
+  sl.registerLazySingleton<ChatRepository>(
+    () => ChatRepositoryImpl(remoteDataSource: sl()),
+  );
+  // BLoCs (ConversationList, ChatRoom) được provide ở cấp Screen.
 }
 

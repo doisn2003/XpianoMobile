@@ -106,7 +106,11 @@ class _CommentSheetBodyState extends State<_CommentSheetBody> {
   @override
   Widget build(BuildContext context) {
     final bottomInsets = MediaQuery.of(context).viewInsets.bottom;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
     final screenHeight = MediaQuery.of(context).size.height;
+    
+    // Fix cho Navigation Bar hệ thống bị đè:
+    final effectiveBottomPadding = bottomInsets > 0 ? bottomInsets : bottomPadding;
 
     return Container(
       height: screenHeight * 0.65,
@@ -191,7 +195,7 @@ class _CommentSheetBodyState extends State<_CommentSheetBody> {
               left: 16,
               right: 8,
               top: 8,
-              bottom: 8 + bottomInsets,
+              bottom: 8 + effectiveBottomPadding,
             ),
             decoration: BoxDecoration(
               color: Colors.white,

@@ -8,13 +8,31 @@ abstract class FeedEvent extends Equatable {
 }
 
 /// Load feed lần đầu
-class FeedLoadRequested extends FeedEvent {}
+class FeedLoadRequested extends FeedEvent {
+  final String? currentUserId;
+  const FeedLoadRequested({this.currentUserId});
+
+  @override
+  List<Object?> get props => [currentUserId];
+}
 
 /// Load thêm trang tiếp theo (pagination)
-class FeedLoadMore extends FeedEvent {}
+class FeedLoadMore extends FeedEvent {
+  final String? currentUserId;
+  const FeedLoadMore({this.currentUserId});
+
+  @override
+  List<Object?> get props => [currentUserId];
+}
 
 /// Pull-to-refresh
-class FeedRefreshRequested extends FeedEvent {}
+class FeedRefreshRequested extends FeedEvent {
+  final String? currentUserId;
+  const FeedRefreshRequested({this.currentUserId});
+
+  @override
+  List<Object?> get props => [currentUserId];
+}
 
 /// Ghi nhận lượt xem bài viết (gọi sau 3s dừng trên 1 bài)
 class FeedTrackView extends FeedEvent {

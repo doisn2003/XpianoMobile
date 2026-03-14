@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,7 +11,10 @@ import '../../domain/repositories/post_repository.dart';
 import '../bloc/feed_bloc.dart';
 import '../bloc/feed_event.dart';
 import '../bloc/feed_state.dart';
+import '../manager/feed_video_manager.dart';
 import '../widgets/post_overlay.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 
 /// Feed Screen — TikTok-style vuốt dọc full-screen
 class FeedScreen extends StatelessWidget {
@@ -18,10 +22,16 @@ class FeedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String? currentUserId;
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      currentUserId = authState.user.id.toString();
+    }
+
     return BlocProvider(
       create: (_) => FeedBloc(
         postRepository: GetIt.instance<PostRepository>(),
-      )..add(FeedLoadRequested()),
+      )..add(FeedLoadRequested(currentUserId: currentUserId)),
       child: const _FeedBody(),
     );
   }
@@ -38,6 +48,7 @@ class _FeedBodyState extends State<_FeedBody> {
   final PageController _pageController = PageController();
   Timer? _viewTimer;
   int _currentPage = 0;
+  bool _initialPreloaded = false;
 
   @override
   void dispose() {
@@ -57,8 +68,33 @@ class _FeedBodyState extends State<_FeedBody> {
     });
 
     if (index >= posts.length - 3) {
-      context.read<FeedBloc>().add(FeedLoadMore());
+      String? currentUserId;
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthAuthenticated) currentUserId = authState.user.id.toString();
+      
+      context.read<FeedBloc>().add(FeedLoadMore(currentUserId: currentUserId));
     }
+
+    _manageVideoPool(index, posts);
+  }
+
+  void _manageVideoPool(int index, List<Post> posts) {
+    final keepIds = <String>[];
+    final preloadInfos = <Map<String, String>>[];
+    
+    // Giữ video hiện tại, 1 trước, 2 sau
+    for (int i = index - 1; i <= index + 2; i++) {
+      if (i >= 0 && i < posts.length) {
+        final p = posts[i];
+        if (p.mediaType == 'video' && p.mediaUrls.isNotEmpty) {
+          keepIds.add(p.id);
+          preloadInfos.add({'id': p.id, 'url': p.mediaUrls.first});
+        }
+      }
+    }
+    
+    FeedVideoManager().preloadVideos(preloadInfos);
+    FeedVideoManager().disposeOutOfRange(keepIds);
   }
 
   @override
@@ -96,7 +132,12 @@ class _FeedBodyState extends State<_FeedBody> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
-                    onPressed: () => context.read<FeedBloc>().add(FeedLoadRequested()),
+                    onPressed: () {
+                      String? currentUserId;
+                      final authState = context.read<AuthBloc>().state;
+                      if (authState is AuthAuthenticated) currentUserId = authState.user.id.toString();
+                      context.read<FeedBloc>().add(FeedLoadRequested(currentUserId: currentUserId));
+                    },
                     icon: const Icon(Icons.refresh, size: 18),
                     label: const Text('Thử lại'),
                   ),
@@ -107,6 +148,13 @@ class _FeedBodyState extends State<_FeedBody> {
         }
 
         if (state is FeedLoaded) {
+          if (!_initialPreloaded && state.posts.isNotEmpty) {
+            _initialPreloaded = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _manageVideoPool(0, state.posts);
+            });
+          }
+
           if (state.posts.isEmpty) {
             return Scaffold(
               appBar: AppBar(title: const Text('Home')),
@@ -164,13 +212,22 @@ class _PostPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        _buildContent(context),
-        PostOverlay(post: post),
-      ],
+    return GestureDetector(
+      onDoubleTap: () => _handleDoubleTapToLike(context),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          _buildContent(context),
+          PostOverlay(post: post),
+        ],
+      ),
     );
+  }
+
+  void _handleDoubleTapToLike(BuildContext context) {
+    if (!post.isLiked) {
+      context.read<FeedBloc>().add(FeedToggleLike(post.id, post.isLiked));
+    }
   }
 
   Widget _buildContent(BuildContext context) {
@@ -216,36 +273,36 @@ class _VideoContentState extends State<_VideoContent> {
         _controller?.play();
       } else {
         _controller?.pause();
+        _controller?.seekTo(Duration.zero);
       }
     }
   }
 
-  void _initVideo() {
+  Future<void> _initVideo() async {
     if (widget.post.mediaUrls.isEmpty) {
       setState(() => _hasError = true);
       return;
     }
 
     final url = widget.post.mediaUrls.first;
-    _controller = VideoPlayerController.networkUrl(Uri.parse(url))
-      ..initialize().then((_) {
-        if (mounted) {
-          setState(() => _isInitialized = true);
-          _controller!.setLooping(true);
-          if (widget.isActive) {
-            _controller!.play();
-          }
+    try {
+      _controller = await FeedVideoManager().getOrCreateController(widget.post.id, url);
+      if (mounted) {
+        setState(() => _isInitialized = true);
+        if (widget.isActive) {
+          _controller!.play();
         }
-      }).catchError((e) {
-        if (mounted) {
-          setState(() => _hasError = true);
-        }
-      });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _hasError = true);
+      }
+    }
   }
 
   @override
   void dispose() {
-    _controller?.dispose();
+    // Không dispose, do FeedVideoManager điều khiển vòng đời controller
     super.dispose();
   }
 
@@ -286,6 +343,26 @@ class _VideoContentState extends State<_VideoContent> {
     }
 
     if (!_isInitialized) {
+      if (widget.post.thumbnailUrl != null && widget.post.thumbnailUrl!.isNotEmpty) {
+        return Container(
+          color: const Color(0xFF1A1208),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CachedNetworkImage(
+                imageUrl: widget.post.thumbnailUrl!,
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => const Center(
+                  child: CircularProgressIndicator(color: AppTheme.primaryGold, strokeWidth: 2),
+                ),
+              ),
+              const Center(
+                child: CircularProgressIndicator(color: AppTheme.primaryGold, strokeWidth: 2),
+              ),
+            ],
+          ),
+        );
+      }
       return Container(
         color: AppTheme.bgCream,
         child: const Center(
@@ -378,16 +455,13 @@ class _ImageContent extends StatelessWidget {
       color: AppTheme.bgCream,
       child: post.mediaUrls.isNotEmpty
           ? Center(
-              child: Image.network(
-                post.mediaUrls.first,
+              child: CachedNetworkImage(
+                imageUrl: post.mediaUrls.first,
                 fit: BoxFit.contain,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return const Center(
-                    child: CircularProgressIndicator(color: AppTheme.primaryGold),
-                  );
-                },
-                errorBuilder: (_, __, ___) => Center(
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(color: AppTheme.primaryGold),
+                ),
+                errorWidget: (context, url, error) => Center(
                   child: Icon(Icons.broken_image, color: AppTheme.textSecondary.withValues(alpha: 128), size: 64),
                 ),
               ),

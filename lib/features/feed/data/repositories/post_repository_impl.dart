@@ -20,6 +20,7 @@ class PostRepositoryImpl implements PostRepository {
     String? cursor,
     int limit = 10,
     String? mediaType,
+    String? currentUserId,
   }) async {
     try {
       // Read-heavy: đọc trực tiếp từ Supabase cho độ trễ siêu thấp
@@ -27,6 +28,7 @@ class PostRepositoryImpl implements PostRepository {
         cursor: cursor,
         limit: limit,
         mediaType: mediaType,
+        currentUserId: currentUserId,
       );
       return Right(posts);
     } catch (e) {

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
@@ -41,8 +42,13 @@ class UserAvatarWidget extends StatelessWidget {
             child: CircleAvatar(
               radius: radius,
               backgroundColor: _isTeacher ? AppTheme.bgCream : AppTheme.primaryGold,
-              backgroundImage:
-                  avatarUrl != null && avatarUrl!.isNotEmpty ? NetworkImage(avatarUrl!) : null,
+              backgroundImage: avatarUrl != null && avatarUrl!.isNotEmpty
+                  ? CachedNetworkImageProvider(
+                      avatarUrl!,
+                      maxHeight: 150, // Tránh phình to RAM
+                      maxWidth: 150,
+                    )
+                  : null,
               child: avatarUrl == null || avatarUrl!.isEmpty
                   ? Text(
                       fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',

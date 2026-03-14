@@ -75,29 +75,6 @@ class _InteractionButtons extends StatelessWidget {
 
   const _InteractionButtons({required this.post, required this.iconColor, required this.textColor});
 
-  void _navigateToProfile(BuildContext context) async {
-    if (post.author == null) return;
-
-    final authState = context.read<AuthBloc>().state;
-    if (authState is! AuthAuthenticated) {
-      final loggedIn = await AuthRequiredDialog.show(context);
-      if (!loggedIn || !context.mounted) return;
-    }
-
-    if (!context.mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => UserProfileScreen(
-          userId: post.author!.id,
-          initialName: post.author!.fullName,
-          initialAvatarUrl: post.author!.avatarUrl,
-          initialRole: post.author!.role,
-        ),
-      ),
-    );
-  }
-
   void _handleLike(BuildContext context) async {
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthAuthenticated) {
@@ -123,16 +100,6 @@ class _InteractionButtons extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Avatar tác giả — luôn hiển thị (fallback khi không có author)
-        UserAvatarWidget(
-          avatarUrl: post.author?.avatarUrl,
-          fullName: post.author?.fullName ?? 'U',
-          role: post.author?.role ?? 'user',
-          radius: 24,
-          onTap: post.author != null ? () => _navigateToProfile(context) : null,
-        ),
-        const SizedBox(height: 16),
-
         // Like (yêu cầu đăng nhập)
         _ActionButton(
           icon: post.isLiked ? Icons.favorite : Icons.favorite_border,
@@ -233,29 +200,59 @@ class _PostInfo extends StatelessWidget {
       children: [
         // Tên tác giả
         if (post.author != null)
-          Row(
-            children: [
-              Text(
-                '@${post.author!.fullName}',
-                style: GoogleFonts.outfit(color: textColor, fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              if (post.author!.role == 'teacher') ...[
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.goldGradient,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'GV',
-                    style: GoogleFonts.outfit(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+          GestureDetector(
+            onTap: () async {
+              final authState = context.read<AuthBloc>().state;
+              if (authState is! AuthAuthenticated) {
+                final loggedIn = await AuthRequiredDialog.show(context);
+                if (!loggedIn || !context.mounted) return;
+              }
+
+              if (!context.mounted) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => UserProfileScreen(
+                    userId: post.author!.id,
+                    initialName: post.author!.fullName,
+                    initialAvatarUrl: post.author!.avatarUrl,
+                    initialRole: post.author!.role,
                   ),
                 ),
+              );
+            },
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                UserAvatarWidget(
+                  avatarUrl: post.author!.avatarUrl,
+                  fullName: post.author!.fullName,
+                  role: post.author!.role,
+                  radius: 18, // Nhỏ hơn chút cho đẹp khi ngang hàng
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '@${post.author!.fullName}',
+                  style: GoogleFonts.outfit(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                if (post.author!.role == 'teacher') ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.goldGradient,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'GV',
+                      style: GoogleFonts.outfit(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 8),
 
         // Title (cho video/image posts)
         if (post.title != null && post.title!.isNotEmpty && post.mediaType != 'none')

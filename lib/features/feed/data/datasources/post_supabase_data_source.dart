@@ -7,6 +7,7 @@ abstract class PostSupabaseDataSource {
     String? cursor,
     int limit = 10,
     String? mediaType,
+    String? currentUserId,
   });
 }
 
@@ -20,6 +21,7 @@ class PostSupabaseDataSourceImpl implements PostSupabaseDataSource {
     String? cursor,
     int limit = 10,
     String? mediaType,
+    String? currentUserId,
   }) async {
     // Bước 1: Lấy posts
     var query = supabaseClient
@@ -62,12 +64,33 @@ class PostSupabaseDataSourceImpl implements PostSupabaseDataSource {
       }
     }
 
-    // Bước 3: Gắn author vào mỗi post
+    // Bước 3: Lấy trạng thái Like của user (nếu đã đăng nhập)
+    Set<String> likedPostIds = {};
+    if (currentUserId != null && posts.isNotEmpty) {
+      final postIds = posts.map((p) => p['id']).toList();
+      try {
+        final likesData = await supabaseClient
+            .from('post_likes')
+            .select('post_id')
+            .eq('user_id', currentUserId)
+            .inFilter('post_id', postIds);
+        
+        likedPostIds = (likesData as List).map((e) => e['post_id'].toString()).toSet();
+      } catch (e) {
+        print('Error fetching likes: $e');
+      }
+    }
+
+    // Bước 4: Gắn author và like status vào mỗi post
     return posts.map((json) {
       final userId = json['user_id'];
       if (userId != null && authorMap.containsKey(userId)) {
         json['author'] = authorMap[userId];
       }
+      
+      final postId = json['id'].toString();
+      json['is_liked'] = likedPostIds.contains(postId);
+      
       return PostModel.fromJson(json);
     }).toList();
   }

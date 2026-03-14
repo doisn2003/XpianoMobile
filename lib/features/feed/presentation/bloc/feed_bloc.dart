@@ -19,7 +19,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
 
   Future<void> _onLoad(FeedLoadRequested event, Emitter<FeedState> emit) async {
     emit(FeedLoading());
-    final result = await postRepository.getFeed(limit: _pageSize);
+    final result = await postRepository.getFeed(limit: _pageSize, currentUserId: event.currentUserId);
     result.fold(
       (failure) => emit(FeedError(failure.message)),
       (posts) => emit(FeedLoaded(
@@ -36,7 +36,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     emit(current.copyWith(isLoadingMore: true));
 
     final cursor = current.posts.last.createdAt.toIso8601String();
-    final result = await postRepository.getFeed(cursor: cursor, limit: _pageSize);
+    final result = await postRepository.getFeed(cursor: cursor, limit: _pageSize, currentUserId: event.currentUserId);
 
     result.fold(
       (failure) => emit(current.copyWith(isLoadingMore: false)),
@@ -49,7 +49,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
   }
 
   Future<void> _onRefresh(FeedRefreshRequested event, Emitter<FeedState> emit) async {
-    final result = await postRepository.getFeed(limit: _pageSize);
+    final result = await postRepository.getFeed(limit: _pageSize, currentUserId: event.currentUserId);
     result.fold(
       (failure) {
         // Giữ dữ liệu cũ nếu refresh thất bại

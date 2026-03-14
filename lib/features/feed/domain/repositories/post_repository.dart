@@ -5,11 +5,11 @@ import '../../../../core/error/failures.dart';
 
 /// Repository interface cho Feed feature
 abstract class PostRepository {
-  /// Lấy feed (cursor-based pagination)
   Future<Either<Failure, List<Post>>> getFeed({
     String? cursor,
     int limit = 10,
     String? mediaType,
+    String? currentUserId,
   });
 
   /// Tạo bài viết mới

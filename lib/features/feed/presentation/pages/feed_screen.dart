@@ -18,7 +18,8 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 
 /// Feed Screen — TikTok-style vuốt dọc full-screen
 class FeedScreen extends StatelessWidget {
-  const FeedScreen({super.key});
+  final bool isTabActive;
+  const FeedScreen({super.key, required this.isTabActive});
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +33,14 @@ class FeedScreen extends StatelessWidget {
       create: (_) => FeedBloc(
         postRepository: GetIt.instance<PostRepository>(),
       )..add(FeedLoadRequested(currentUserId: currentUserId)),
-      child: const _FeedBody(),
+      child: _FeedBody(isTabActive: isTabActive),
     );
   }
 }
 
 class _FeedBody extends StatefulWidget {
-  const _FeedBody();
+  final bool isTabActive;
+  const _FeedBody({required this.isTabActive});
 
   @override
   State<_FeedBody> createState() => _FeedBodyState();
@@ -190,6 +192,7 @@ class _FeedBodyState extends State<_FeedBody> {
                   return _PostPage(
                     post: post,
                     isActive: index == _currentPage,
+                    isTabActive: widget.isTabActive,
                   );
                 },
               ),
@@ -207,8 +210,13 @@ class _FeedBodyState extends State<_FeedBody> {
 class _PostPage extends StatelessWidget {
   final Post post;
   final bool isActive;
+  final bool isTabActive;
 
-  const _PostPage({required this.post, required this.isActive});
+  const _PostPage({
+    required this.post,
+    required this.isActive,
+    required this.isTabActive,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +241,11 @@ class _PostPage extends StatelessWidget {
   Widget _buildContent(BuildContext context) {
     switch (post.mediaType) {
       case 'video':
-        return _VideoContent(post: post, isActive: isActive);
+        return _VideoContent(
+          post: post,
+          isActive: isActive,
+          isTabActive: isTabActive,
+        );
       case 'image':
         return _ImageContent(post: post);
       default:
@@ -246,8 +258,13 @@ class _PostPage extends StatelessWidget {
 class _VideoContent extends StatefulWidget {
   final Post post;
   final bool isActive;
+  final bool isTabActive;
 
-  const _VideoContent({required this.post, required this.isActive});
+  const _VideoContent({
+    required this.post,
+    required this.isActive,
+    required this.isTabActive,
+  });
 
   @override
   State<_VideoContent> createState() => _VideoContentState();
@@ -268,12 +285,11 @@ class _VideoContentState extends State<_VideoContent> {
   @override
   void didUpdateWidget(_VideoContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isActive != oldWidget.isActive) {
-      if (widget.isActive) {
+    if (widget.isActive != oldWidget.isActive || widget.isTabActive != oldWidget.isTabActive) {
+      if (widget.isActive && widget.isTabActive) {
         _controller?.play();
       } else {
         _controller?.pause();
-        _controller?.seekTo(Duration.zero);
       }
     }
   }
@@ -289,7 +305,7 @@ class _VideoContentState extends State<_VideoContent> {
       _controller = await FeedVideoManager().getOrCreateController(widget.post.id, url);
       if (mounted) {
         setState(() => _isInitialized = true);
-        if (widget.isActive) {
+        if (widget.isActive && widget.isTabActive) {
           _controller!.play();
         }
       }

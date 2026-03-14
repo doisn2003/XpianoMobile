@@ -23,10 +23,11 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   int _refreshCounter = 0;
 
-  late List<Widget> _pages = _buildPages();
-
   List<Widget> _buildPages() => [
-    FeedScreen(key: ValueKey('feed_$_refreshCounter')),
+    FeedScreen(
+      key: ValueKey('feed_$_refreshCounter'),
+      isTabActive: _currentIndex == 0,
+    ),
     PianoListScreen(key: ValueKey('piano_$_refreshCounter')),
     const SizedBox(), // Nút cộng — không render
     ExploreScreen(key: ValueKey('explore_$_refreshCounter')),
@@ -40,7 +41,6 @@ class _MainScreenState extends State<MainScreen> {
       // Tap lại tab hiện tại → refresh page
       setState(() {
         _refreshCounter++;
-        _pages = _buildPages();
       });
     } else {
       setState(() => _currentIndex = index);
@@ -66,7 +66,6 @@ class _MainScreenState extends State<MainScreen> {
       setState(() {
         _currentIndex = 0;
         _refreshCounter++;
-        _pages = _buildPages();
       });
     }
   }
@@ -77,7 +76,7 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _pages,
+        children: _buildPages(),
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,

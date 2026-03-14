@@ -1,14 +1,17 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/image_utils.dart';
 import '../../../../injection_container.dart' as di;
 import '../../domain/entities/course.dart';
 import '../../domain/repositories/course_repository.dart';
 import '../bloc/course_schedule_bloc.dart';
 import '../bloc/course_schedule_event.dart';
 import '../bloc/course_schedule_state.dart';
+import '../widgets/course_media_header.dart';
 
 class CourseScheduleDetailScreen extends StatelessWidget {
   final String courseId;
@@ -39,10 +42,6 @@ class _ScheduleDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.bgCream,
-      appBar: AppBar(
-        title: const Text('Chi tiết lịch học'),
-        backgroundColor: AppTheme.cardWhite,
-      ),
       body: BlocBuilder<CourseScheduleBloc, CourseScheduleState>(
         builder: (context, state) {
           if (state is CourseScheduleLoading) {
@@ -75,36 +74,64 @@ class _ScheduleDetailView extends StatelessWidget {
   Widget _buildContent(BuildContext context, CourseScheduleLoaded state) {
     return DefaultTabController(
       length: 2,
-      child: Column(
-        children: [
-          // Course header card
-          _buildCourseHeader(state),
-
-          // Tab bar
-          Container(
-            color: AppTheme.cardWhite,
-            child: const TabBar(
-              indicatorColor: AppTheme.primaryGold,
-              labelColor: AppTheme.primaryGoldDark,
-              unselectedLabelColor: AppTheme.textSecondary,
-              labelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-              tabs: [
-                Tab(text: 'Học viên'),
-                Tab(text: 'Các buổi học'),
-              ],
+      child: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          // SliverAppBar with thumbnail + video
+          SliverAppBar(
+            expandedHeight: 240,
+            pinned: true,
+            backgroundColor: AppTheme.cardWhite,
+            title: innerBoxIsScrolled ? const Text('Chi tiết lịch học') : null,
+            leading: IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.85),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.arrow_back, color: AppTheme.textPrimary, size: 20),
+              ),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: CourseMediaHeader(
+                thumbnailUrl: state.course.thumbnailUrl,
+                coverUrl: state.course.coverUrl,
+                demoVideoUrl: state.course.demoVideoUrl,
+                height: 240 + MediaQuery.of(context).padding.top,
+              ),
             ),
           ),
 
-          // Tab content
-          Expanded(
-            child: TabBarView(
-              children: [
-                _buildEnrollmentList(state),
-                _buildSessionList(state),
-              ],
+          // Course header card
+          SliverToBoxAdapter(child: _buildCourseHeader(state)),
+
+          // Tab bar
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _TabBarDelegate(
+              child: Container(
+                color: AppTheme.cardWhite,
+                child: const TabBar(
+                  indicatorColor: AppTheme.primaryGold,
+                  labelColor: AppTheme.primaryGoldDark,
+                  unselectedLabelColor: AppTheme.textSecondary,
+                  labelStyle: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  tabs: [
+                    Tab(text: 'Học viên'),
+                    Tab(text: 'Các buổi học'),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
+        body: TabBarView(
+          children: [
+            _buildEnrollmentList(state),
+            _buildSessionList(state),
+          ],
+        ),
       ),
     );
   }
@@ -227,17 +254,7 @@ class _ScheduleDetailView extends StatelessWidget {
         final enrollment = state.enrollments[index];
         final user = enrollment.user;
         return ListTile(
-          leading: CircleAvatar(
-            radius: 20,
-            backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
-            backgroundImage: user?.avatarUrl != null ? NetworkImage(user!.avatarUrl!) : null,
-            child: user?.avatarUrl == null
-                ? Text(
-                    user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : '?',
-                    style: const TextStyle(color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold),
-                  )
-                : null,
-          ),
+          leading: _buildUserAvatar(user),
           title: Text(user?.fullName ?? 'Học viên', style: const TextStyle(fontWeight: FontWeight.w600)),
           subtitle: enrollment.createdAt != null
               ? Text(
@@ -255,6 +272,25 @@ class _ScheduleDetailView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildUserAvatar(dynamic user) {
+    final avatarUrl = ImageUtils.optimizedAvatar(user?.avatarUrl);
+    if (avatarUrl.isNotEmpty) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
+        backgroundImage: CachedNetworkImageProvider(avatarUrl),
+      );
+    }
+    return CircleAvatar(
+      radius: 20,
+      backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
+      child: Text(
+        user?.fullName?.isNotEmpty == true ? user!.fullName[0].toUpperCase() : '?',
+        style: const TextStyle(color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold),
+      ),
     );
   }
 
@@ -349,4 +385,23 @@ class _ScheduleDetailView extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Delegate that pins the TabBar below the SliverAppBar.
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+
+  _TabBarDelegate({required this.child});
+
+  @override
+  double get minExtent => 48;
+
+  @override
+  double get maxExtent => 48;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => child;
+
+  @override
+  bool shouldRebuild(covariant _TabBarDelegate oldDelegate) => false;
 }

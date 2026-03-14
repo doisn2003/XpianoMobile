@@ -19,6 +19,7 @@ import 'features/explore/data/datasources/course_remote_data_source.dart';
 import 'features/explore/data/repositories/course_repository_impl.dart';
 import 'features/explore/domain/repositories/course_repository.dart';
 import 'features/chat/data/datasources/chat_remote_data_source.dart';
+import 'features/chat/data/datasources/user_search_data_source.dart';
 import 'features/chat/data/repositories/chat_repository_impl.dart';
 import 'features/chat/domain/repositories/chat_repository.dart';
 
@@ -112,6 +113,10 @@ Future<void> init() async {
 
   sl.registerLazySingleton<ChatRepository>(
     () => ChatRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  sl.registerLazySingleton<UserSearchDataSource>(
+    () => UserSearchDataSourceImpl(dioClient: sl()),
   );
   // BLoCs (ConversationList, ChatRoom) được provide ở cấp Screen.
 }

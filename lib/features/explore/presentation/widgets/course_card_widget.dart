@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/image_utils.dart';
 import '../../domain/entities/course.dart';
 
 class CourseCardWidget extends StatelessWidget {
@@ -17,6 +19,9 @@ class CourseCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
+    final thumbnailUrl = ImageUtils.optimizedCourseThumbnail(
+      course.thumbnailUrl ?? course.coverUrl,
+    );
 
     return GestureDetector(
       onTap: onTap,
@@ -34,10 +39,11 @@ class CourseCardWidget extends StatelessWidget {
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              flex: 3,
+            // Thumbnail (fixed aspect ratio)
+            AspectRatio(
+              aspectRatio: 12 / 10,
               child: Stack(
                 children: [
                   Container(
@@ -46,18 +52,20 @@ class CourseCardWidget extends StatelessWidget {
                       color: AppTheme.bgCreamDarker,
                       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                     ),
-                    child: course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
+                    child: thumbnailUrl.isNotEmpty
                         ? ClipRRect(
                             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                            child: Image.network(
-                              course.thumbnailUrl!,
+                            child: CachedNetworkImage(
+                              imageUrl: thumbnailUrl,
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                              width: double.infinity,
+                              height: double.infinity,
+                              placeholder: (_, __) => _buildPlaceholder(),
+                              errorWidget: (_, __, ___) => _buildPlaceholder(),
                             ),
                           )
                         : _buildPlaceholder(),
                   ),
-                  // Status badge
                   Positioned(
                     top: 8,
                     left: 8,
@@ -73,53 +81,66 @@ class CourseCardWidget extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
                 ],
               ),
             ),
+
+            // Info section -- expands to fill remaining grid cell height
             Expanded(
-              flex: 3,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 6, 10, 5),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // Title (centered, max 2 lines, ellipsis)
                     Text(
                       course.title,
-                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
                     ),
-                    const SizedBox(height: 3),
-                    if (course.teacher != null)
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 8,
-                            backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
-                            backgroundImage: course.teacher!.avatarUrl != null
-                                ? NetworkImage(course.teacher!.avatarUrl!)
-                                : null,
-                            child: course.teacher!.avatarUrl == null
-                                ? Text(
-                                    course.teacher!.fullName.isNotEmpty ? course.teacher!.fullName[0].toUpperCase() : '?',
-                                    style: const TextStyle(fontSize: 8, color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold),
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              course.teacher!.fullName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
-                            ),
-                          ),
-                        ],
+
+                    // Description (centered, max 2 lines)
+                    if (course.description != null && course.description!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Text(
+                          course.description!,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
+                        ),
                       ),
+
+                    // Teacher
+                    if (course.teacher != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildTeacherAvatar(),
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                course.teacher!.fullName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                    // Push price to bottom
                     const Spacer(),
+
+                    // Duration row (centered)
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.calendar_today, size: 12, color: AppTheme.textSecondary),
                         const SizedBox(width: 3),
@@ -130,8 +151,11 @@ class CourseCardWidget extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 4),
+
+                    // Price (centered, always at bottom)
                     Text(
                       course.price > 0 ? currencyFormat.format(course.price) : 'Miễn phí',
+                      textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppTheme.primaryGoldDark),
                     ),
                   ],
@@ -140,6 +164,25 @@ class CourseCardWidget extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTeacherAvatar() {
+    final avatarUrl = ImageUtils.optimizedAvatar(course.teacher?.avatarUrl);
+    if (avatarUrl.isNotEmpty) {
+      return CircleAvatar(
+        radius: 8,
+        backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
+        backgroundImage: CachedNetworkImageProvider(avatarUrl),
+      );
+    }
+    return CircleAvatar(
+      radius: 8,
+      backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
+      child: Text(
+        course.teacher!.fullName.isNotEmpty ? course.teacher!.fullName[0].toUpperCase() : '?',
+        style: const TextStyle(fontSize: 8, color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold),
       ),
     );
   }

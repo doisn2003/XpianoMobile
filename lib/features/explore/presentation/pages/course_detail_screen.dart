@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/image_utils.dart';
 import '../../../../injection_container.dart' as di;
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -11,6 +13,7 @@ import '../../domain/repositories/course_repository.dart';
 import '../bloc/course_detail_bloc.dart';
 import '../bloc/course_detail_event.dart';
 import '../bloc/course_detail_state.dart';
+import '../widgets/course_media_header.dart';
 import '../widgets/course_order_sheet.dart';
 
 class CourseDetailScreen extends StatelessWidget {
@@ -86,11 +89,12 @@ class _CourseDetailView extends StatelessWidget {
                     ),
                   ),
                   flexibleSpace: FlexibleSpaceBar(
-                    background: course.coverUrl != null && course.coverUrl!.isNotEmpty
-                        ? Image.network(course.coverUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildHeroPlaceholder())
-                        : course.thumbnailUrl != null && course.thumbnailUrl!.isNotEmpty
-                            ? Image.network(course.thumbnailUrl!, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _buildHeroPlaceholder())
-                            : _buildHeroPlaceholder(),
+                    background: CourseMediaHeader(
+                      thumbnailUrl: course.thumbnailUrl,
+                      coverUrl: course.coverUrl,
+                      demoVideoUrl: course.demoVideoUrl,
+                      height: 240 + MediaQuery.of(context).padding.top,
+                    ),
                   ),
                 ),
                 SliverToBoxAdapter(
@@ -114,7 +118,7 @@ class _CourseDetailView extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Icon(Icons.people, size: 16, color: AppTheme.textSecondary),
+                            const Icon(Icons.people, size: 16, color: AppTheme.textSecondary),
                             const SizedBox(width: 4),
                             Text(
                               '${course.enrolledCount}/${course.maxStudents} học viên',
@@ -135,19 +139,7 @@ class _CourseDetailView extends StatelessWidget {
                         if (course.teacher != null) ...[
                           Row(
                             children: [
-                              CircleAvatar(
-                                radius: 18,
-                                backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
-                                backgroundImage: course.teacher!.avatarUrl != null
-                                    ? NetworkImage(course.teacher!.avatarUrl!)
-                                    : null,
-                                child: course.teacher!.avatarUrl == null
-                                    ? Text(
-                                        course.teacher!.fullName.isNotEmpty ? course.teacher!.fullName[0].toUpperCase() : '?',
-                                        style: const TextStyle(color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold),
-                                      )
-                                    : null,
-                              ),
+                              _buildTeacherAvatar(course.teacher!),
                               const SizedBox(width: 10),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,10 +275,22 @@ class _CourseDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildHeroPlaceholder() {
-    return Container(
-      color: AppTheme.bgCreamDarker,
-      child: Center(child: Icon(Icons.school, size: 80, color: AppTheme.textSecondary.withOpacity(0.2))),
+  Widget _buildTeacherAvatar(dynamic teacher) {
+    final avatarUrl = ImageUtils.optimizedAvatar(teacher.avatarUrl);
+    if (avatarUrl.isNotEmpty) {
+      return CircleAvatar(
+        radius: 18,
+        backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
+        backgroundImage: CachedNetworkImageProvider(avatarUrl),
+      );
+    }
+    return CircleAvatar(
+      radius: 18,
+      backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
+      child: Text(
+        teacher.fullName.isNotEmpty ? teacher.fullName[0].toUpperCase() : '?',
+        style: const TextStyle(color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold),
+      ),
     );
   }
 

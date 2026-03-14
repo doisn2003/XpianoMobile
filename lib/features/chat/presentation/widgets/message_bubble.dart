@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/image_utils.dart';
 import '../../domain/entities/message.dart';
 
 class MessageBubble extends StatelessWidget {
@@ -88,7 +90,7 @@ class MessageBubble extends StatelessWidget {
   }
 
   Widget _buildAvatar() {
-    final avatarUrl = message.author?.avatarUrl;
+    final resolvedUrl = ImageUtils.optimizedAvatar(message.author?.avatarUrl);
     final initial = message.author?.fullName.isNotEmpty == true
         ? message.author!.fullName[0].toUpperCase()
         : '?';
@@ -96,8 +98,8 @@ class MessageBubble extends StatelessWidget {
     return CircleAvatar(
       radius: 14,
       backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
-      backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-      child: avatarUrl == null
+      backgroundImage: resolvedUrl.isNotEmpty ? CachedNetworkImageProvider(resolvedUrl) : null,
+      child: resolvedUrl.isEmpty
           ? Text(initial, style: const TextStyle(fontSize: 10, color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold))
           : null,
     );

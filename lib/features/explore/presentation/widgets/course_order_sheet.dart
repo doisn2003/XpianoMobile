@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -237,7 +238,7 @@ class _CourseOrderSheetState extends State<CourseOrderSheet> {
               const SizedBox(height: 12),
               const Text('Quét mã QR để thanh toán:', style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              Center(child: Image.network(state.qrUrl!, width: 200, height: 200)),
+              Center(child: CachedNetworkImage(imageUrl: state.qrUrl!, width: 200, height: 200)),
             ],
             if (state.orderData['payment_method'] == 'COD')
               const Text('\nNhân viên sẽ liên hệ bạn để xác nhận.'),

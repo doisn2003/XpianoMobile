@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/image_utils.dart';
 import '../../domain/entities/conversation.dart';
 
 class ConversationTile extends StatelessWidget {
@@ -16,7 +18,7 @@ class ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final avatar = conversation.otherUser?.avatarUrl;
+    final avatarUrl = ImageUtils.optimizedAvatar(conversation.otherUser?.avatarUrl);
     final name = conversation.displayName;
     final initial = name.isNotEmpty ? name[0].toUpperCase() : '?';
 
@@ -46,8 +48,8 @@ class ConversationTile extends StatelessWidget {
             CircleAvatar(
               radius: 24,
               backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
-              backgroundImage: avatar != null ? NetworkImage(avatar) : null,
-              child: avatar == null
+              backgroundImage: avatarUrl.isNotEmpty ? CachedNetworkImageProvider(avatarUrl) : null,
+              child: avatarUrl.isEmpty
                   ? Text(initial, style: const TextStyle(color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold, fontSize: 18))
                   : null,
             ),

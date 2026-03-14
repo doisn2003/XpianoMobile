@@ -8,8 +8,14 @@ class ConversationListLoading extends ConversationListState {}
 
 class ConversationListLoaded extends ConversationListState {
   final List<Conversation> conversations;
+  final List<Conversation> filteredConversations;
+  final String searchQuery;
 
-  ConversationListLoaded({required this.conversations});
+  ConversationListLoaded({
+    required this.conversations,
+    List<Conversation>? filteredConversations,
+    this.searchQuery = '',
+  }) : filteredConversations = filteredConversations ?? conversations;
 }
 
 class ConversationListError extends ConversationListState {

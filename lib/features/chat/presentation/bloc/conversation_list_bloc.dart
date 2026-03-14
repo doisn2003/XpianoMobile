@@ -9,6 +9,7 @@ class ConversationListBloc extends Bloc<ConversationListEvent, ConversationListS
 
   ConversationListBloc({required this.chatRepository}) : super(ConversationListInitial()) {
     on<LoadConversations>(_onLoad);
+    on<SearchConversations>(_onSearch);
     on<CreateNewConversation>(_onCreate);
   }
 
@@ -19,6 +20,32 @@ class ConversationListBloc extends Bloc<ConversationListEvent, ConversationListS
       (failure) => emit(ConversationListError(failure.message)),
       (conversations) => emit(ConversationListLoaded(conversations: conversations)),
     );
+  }
+
+  void _onSearch(SearchConversations event, Emitter<ConversationListState> emit) {
+    final current = state;
+    if (current is! ConversationListLoaded) return;
+
+    final query = event.query.trim().toLowerCase();
+    if (query.isEmpty) {
+      emit(ConversationListLoaded(
+        conversations: current.conversations,
+        searchQuery: '',
+      ));
+      return;
+    }
+
+    final filtered = current.conversations.where((c) {
+      final name = c.displayName.toLowerCase();
+      final lastMsg = (c.lastMessageContent ?? '').toLowerCase();
+      return name.contains(query) || lastMsg.contains(query);
+    }).toList();
+
+    emit(ConversationListLoaded(
+      conversations: current.conversations,
+      filteredConversations: filtered,
+      searchQuery: query,
+    ));
   }
 
   Future<void> _onCreate(CreateNewConversation event, Emitter<ConversationListState> emit) async {

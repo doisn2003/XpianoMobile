@@ -113,7 +113,7 @@ class _CourseListViewState extends State<_CourseListView> {
                       crossAxisCount: 2,
                       mainAxisSpacing: 12,
                       crossAxisSpacing: 14,
-                      childAspectRatio: 0.72,
+                      childAspectRatio: 0.58,
                     ),
                     itemCount: state.courses.length,
                     itemBuilder: (context, index) {

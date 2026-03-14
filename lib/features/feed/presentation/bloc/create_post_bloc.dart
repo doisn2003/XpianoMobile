@@ -54,16 +54,17 @@ class CreatePostBloc extends Bloc<CreatePostEvent, CreatePostState> {
 
       // Upload media files nếu có
       if (current.selectedFiles.isNotEmpty) {
-        final totalFiles = current.selectedFiles.length;
-
         if (mediaType == 'video') {
-          // Upload video
-          emit(const CreatePostUploading(progress: 0.0, statusMessage: 'Đang tải video...'));
+          // Upload video (có nén trước)
+          emit(const CreatePostUploading(progress: 0.0, statusMessage: 'Đang chuẩn bị video...'));
           final videoUrl = await uploadService.uploadFile(
             file: current.selectedFiles.first,
             uploadType: 'post_video',
             onProgress: (p) {
               emit(CreatePostUploading(progress: p * 0.9, statusMessage: 'Đang tải video... ${(p * 100).toInt()}%'));
+            },
+            onStatusChange: (status) {
+              emit(CreatePostUploading(progress: 0.0, statusMessage: status));
             },
           );
           mediaUrls = [videoUrl];
@@ -71,25 +72,27 @@ class CreatePostBloc extends Bloc<CreatePostEvent, CreatePostState> {
           // TODO: Extract thumbnail & duration from video
           // Sẽ thêm khi tích hợp video_compress package
         } else if (mediaType == 'image') {
-          // Upload ảnh
-          for (int i = 0; i < totalFiles; i++) {
-            emit(CreatePostUploading(
-              progress: i / totalFiles,
-              statusMessage: 'Đang tải ảnh ${i + 1}/$totalFiles...',
-            ));
-            final url = await uploadService.uploadFile(
-              file: current.selectedFiles[i],
-              uploadType: 'post_image',
-              onProgress: (p) {
-                final overallProgress = (i + p) / totalFiles;
-                emit(CreatePostUploading(
-                  progress: overallProgress * 0.9,
-                  statusMessage: 'Đang tải ảnh ${i + 1}/$totalFiles... ${(p * 100).toInt()}%',
-                ));
-              },
-            );
-            mediaUrls.add(url);
-          }
+          // Upload ảnh song song
+          final totalFiles = current.selectedFiles.length;
+          emit(CreatePostUploading(
+            progress: 0.0,
+            statusMessage: 'Đang chuẩn bị $totalFiles ảnh...',
+          ));
+
+          mediaUrls = await uploadService.uploadMultipleFiles(
+            files: current.selectedFiles,
+            uploadType: 'post_image',
+            onProgress: (index, p) {
+              final overallProgress = (index + p) / totalFiles;
+              emit(CreatePostUploading(
+                progress: overallProgress * 0.9,
+                statusMessage: 'Đang tải ảnh ${index + 1}/$totalFiles... ${(p * 100).toInt()}%',
+              ));
+            },
+            onStatusChange: (status) {
+              emit(CreatePostUploading(progress: 0.0, statusMessage: status));
+            },
+          );
         }
       }
 

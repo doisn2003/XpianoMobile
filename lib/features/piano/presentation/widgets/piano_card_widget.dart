@@ -38,19 +38,18 @@ class PianoCardWidget extends StatelessWidget {
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Ảnh + Badge category + Heart icon
+            // Image + Badge + Heart
             Expanded(
               flex: 3,
               child: Stack(
                 children: [
-                  // Ảnh đàn
                   Container(
                     width: double.infinity,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppTheme.bgCreamDarker,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                     ),
                     child: piano.imageUrl != null && piano.imageUrl!.isNotEmpty
                         ? ClipRRect(
@@ -107,18 +106,19 @@ class PianoCardWidget extends StatelessWidget {
               ),
             ),
 
-            // Info
+            // Info section
             Expanded(
               flex: 3,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 1, 10, 5),
+                padding: const EdgeInsets.fromLTRB(10, 4, 10, 6),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Tên đàn
+                    // Title (centered)
                     Text(
                       piano.name,
-                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 13,
@@ -126,19 +126,26 @@ class PianoCardWidget extends StatelessWidget {
                         color: AppTheme.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 3),
 
-                    // Mô tả ngắn
+                    // Description (centered, max 2 lines)
                     if (piano.description != null && piano.description!.isNotEmpty)
-                      Text(
-                        piano.description!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          piano.description!,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary, height: 1.3),
+                        ),
                       ),
 
-                    // Rating
+                    // Push price section to bottom
+                    const Spacer(),
+
+                    // Rating (centered)
                     Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(Icons.star, color: AppTheme.primaryGold, size: 14),
                         const SizedBox(width: 2),
@@ -152,11 +159,12 @@ class PianoCardWidget extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
 
-                    // Giá
+                    // Price (centered, always at bottom)
                     Text(
                       '${currencyFormat.format(piano.pricePerDay)}/ngày',
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,

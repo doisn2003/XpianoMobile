@@ -5,11 +5,22 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/presentation/pages/login_screen.dart';
+import '../../../auth/presentation/widgets/auth_required_dialog.dart';
 import '../../../piano/presentation/pages/piano_list_screen.dart';
+import '../../../feed/presentation/pages/create_post_screen.dart';
+import '../../../feed/presentation/pages/feed_screen.dart';
+import '../../../explore/presentation/pages/explore_screen.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../profile/presentation/pages/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
+
+  // Static callback để banner "Xem ngay" có thể chuyển Home + refresh từ bất cứ đâu
+  static _MainScreenState? _instance;
+  static void switchToHomeAndRefresh() {
+    _instance?._switchToHomeAndRefresh();
+  }
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -17,62 +28,77 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  int _refreshCounter = 0;
 
-  final List<Widget> _pages = [
-    const PlaceholderScreen(title: 'Home Feed', icon: Icons.home),
-    const PianoListScreen(),
-    const SizedBox(), // Nơi giữ Tab 2 (Nút cộng) - không render vì có BottomSheet can thiệp
-    const PlaceholderScreen(title: 'Khám Phá Khóa Học', icon: Icons.explore),
-    const ProfileTabScreen(), // Tab Hồ sơ sẽ check logic hiển thị UI cho Teacher
+  @override
+  void initState() {
+    super.initState();
+    MainScreen._instance = this;
+  }
+
+  @override
+  void dispose() {
+    if (MainScreen._instance == this) {
+      MainScreen._instance = null;
+    }
+    super.dispose();
+  }
+
+  List<Widget> _buildPages() => [
+    FeedScreen(
+      key: ValueKey('feed_$_refreshCounter'),
+      isTabActive: _currentIndex == 0,
+    ),
+    PianoListScreen(key: ValueKey('piano_$_refreshCounter')),
+    const SizedBox(), // Nút cộng — không render
+    ExploreScreen(key: ValueKey('explore_$_refreshCounter')),
+    const ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
     if (index == 2) {
-      // Bắt sự kiện ấn vào nút (+) Upload Post ở giữa
       _showUploadOptions();
-    } else {
+    } else if (index == _currentIndex) {
+      // Tap lại tab hiện tại → refresh page
       setState(() {
-        _currentIndex = index;
+        _refreshCounter++;
       });
+    } else {
+      setState(() => _currentIndex = index);
     }
   }
 
-  void _showUploadOptions() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text('Tải lên nội dung', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              ),
-              ListTile(
-                leading: const Icon(Icons.video_call, color: Colors.deepPurple),
-                title: const Text('Quay Video mới'),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library, color: Colors.blue),
-                title: const Text('Chọn ảnh/video từ thư viện'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        );
-      },
+  void _showUploadOptions() async {
+    // Kiểm tra auth: phải đăng nhập mới được đăng bài
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) {
+      final loggedIn = await AuthRequiredDialog.show(context);
+      if (!loggedIn || !mounted) return;
+    }
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CreatePostScreen()),
     );
+  }
+
+  /// Chuyển về tab Home + refresh feed (gọi từ banner "Xem ngay")
+  void _switchToHomeAndRefresh() {
+    setState(() {
+      _currentIndex = 0;
+      _refreshCounter++;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     // Không force redirect LoginScreen khi Unauthenticated — khách có thể dùng app tự do
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _buildPages(),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
@@ -99,8 +125,8 @@ class _MainScreenState extends State<MainScreen> {
             ),
             label: '',
           ),
-          const BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: 'Khám phá'),
-          const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Hồ sơ'),
+          const BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), label: 'Khám Phá'),
+          const BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Hồ Sơ'),
         ],
       ),
     );
@@ -131,157 +157,3 @@ class PlaceholderScreen extends StatelessWidget {
   }
 }
 
-/// Màn hình Hồ Sơ — hiển thị nút Đăng nhập nếu chưa Auth, hoặc thông tin user nếu đã Auth
-class ProfileTabScreen extends StatelessWidget {
-  const ProfileTabScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final authState = context.watch<AuthBloc>().state;
-
-    // Khách chưa đăng nhập
-    if (authState is! AuthAuthenticated) {
-      return _buildGuestProfile(context);
-    }
-
-    // Đã đăng nhập
-    final user = authState.user;
-    final isTeacher = user.isTeacher;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isTeacher ? 'Hồ sơ giáo viên' : 'Hồ sơ'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
-          )
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          // User card
-          Card(
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
-                child: Text(
-                  user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
-                  style: const TextStyle(color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold, fontSize: 20),
-                ),
-              ),
-              title: Text(user.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(isTeacher ? 'Giáo viên' : 'Học viên', style: const TextStyle(color: AppTheme.textSecondary)),
-              trailing: Chip(
-                label: Text(isTeacher ? 'Giáo viên' : 'Học viên', style: const TextStyle(color: Colors.white, fontSize: 12)),
-                backgroundColor: isTeacher ? AppTheme.primaryGold : Colors.blueGrey,
-                padding: EdgeInsets.zero,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          const ListTile(
-            leading: Icon(Icons.shopping_bag, color: AppTheme.textPrimary),
-            title: Text('Khóa học của tôi'),
-            trailing: Icon(Icons.chevron_right),
-          ),
-          const ListTile(
-            leading: Icon(Icons.history, color: AppTheme.textPrimary),
-            title: Text('Lịch sử đơn hàng'),
-            trailing: Icon(Icons.chevron_right),
-          ),
-
-          if (isTeacher) ...[
-            const Divider(height: 40, thickness: 1),
-            const Text('Khu vực Giáo viên', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primaryGoldDark)),
-            const SizedBox(height: 10),
-            ListTile(
-              leading: const Icon(Icons.upload_file, color: AppTheme.primaryGold),
-              title: const Text('Cập nhật Chứng chỉ'),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: const Icon(Icons.create, color: AppTheme.primaryGold),
-              title: const Text('Quản lý khóa học (CMS)'),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: const Icon(Icons.bar_chart, color: AppTheme.primaryGold),
-              title: const Text('Thống kê thu nhập'),
-              onTap: () {},
-            ),
-          ],
-
-          const Divider(height: 40),
-          Center(
-            child: TextButton(
-              onPressed: () {
-                context.read<AuthBloc>().add(AuthLogoutRequested());
-              },
-              child: const Text('Đăng xuất', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGuestProfile(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Hồ sơ')),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryGold.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.person_outline, size: 40, color: AppTheme.primaryGold),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Chào mừng đến Xpiano!',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Đăng nhập để trải nghiệm đầy đủ tính năng',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryGold,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
-                  ),
-                  child: const Text('ĐĂNG NHẬP', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

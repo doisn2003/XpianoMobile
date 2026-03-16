@@ -62,3 +62,6 @@ class SubmitPost extends CreatePostEvent {
 
 /// Reset form
 class ResetCreatePost extends CreatePostEvent {}
+
+/// Dismiss upload status (khi user ấn "Xem ngay" hoặc dismiss banner)
+class DismissUploadStatus extends CreatePostEvent {}

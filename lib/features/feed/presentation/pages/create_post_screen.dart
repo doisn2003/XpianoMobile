@@ -1,29 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
-import '../../../../core/services/media_upload_service.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../domain/repositories/post_repository.dart';
 import '../bloc/create_post_bloc.dart';
 import '../bloc/create_post_event.dart';
+import '../bloc/create_post_state.dart';
 import 'text_post_form.dart';
 import 'video_post_form.dart';
 
 /// Màn hình chọn loại bài viết — mở từ nút "+" trên navbar
+/// Sử dụng global CreatePostBloc (không tạo BlocProvider mới)
 class CreatePostScreen extends StatelessWidget {
   const CreatePostScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => CreatePostBloc(
-        postRepository: GetIt.instance<PostRepository>(),
-        uploadService: MediaUploadService(
-          postRepository: GetIt.instance<PostRepository>(),
-        ),
-      ),
-      child: const _CreatePostBody(),
-    );
+    // Chỉ reset khi KHÔNG đang upload (tránh mất trạng thái upload đang chạy)
+    final state = context.read<CreatePostBloc>().state;
+    if (state is! CreatePostUploading) {
+      context.read<CreatePostBloc>().add(ResetCreatePost());
+    }
+
+    return const _CreatePostBody();
   }
 }
 
@@ -43,29 +41,31 @@ class _CreatePostBody extends StatelessWidget {
           children: [
             const SizedBox(height: 20),
             Text(
-              'Chọn loại bài viết',
+              'Chọn cách bạn muốn chia sẻ',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'Chia sẻ khoảnh khắc piano của bạn với cộng đồng',
+              'Chia sẻ khoảnh khắc Piano của bạn với cộng đồng',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppTheme.textSecondary,
                   ),
             ),
-            const SizedBox(height: 32),
-            _PostTypeCard(
-              icon: Icons.text_fields_rounded,
-              title: 'Bài viết Text / Ảnh',
-              subtitle: 'Chia sẻ suy nghĩ, kinh nghiệm hoặc hình ảnh',
-              onTap: () => _navigateToForm(context, 'text'),
-            ),
+            
+            const SizedBox(height: 20),
             const SizedBox(height: 16),
             _PostTypeCard(
               icon: Icons.videocam_rounded,
               title: 'Video',
               subtitle: 'Quay hoặc tải video biểu diễn piano',
               onTap: () => _navigateToForm(context, 'video'),
+            ),
+            const SizedBox(height: 20),
+            _PostTypeCard(
+              icon: Icons.text_fields_rounded,
+              title: 'Bài viết Text / Ảnh',
+              subtitle: 'Chia sẻ suy nghĩ, kinh nghiệm hoặc hình ảnh',
+              onTap: () => _navigateToForm(context, 'text'),
             ),
           ],
         ),

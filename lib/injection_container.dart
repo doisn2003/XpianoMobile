@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/network/dio_client.dart';
 import 'core/network/supabase_client.dart';
+import 'core/services/media_upload_service.dart';
 import 'features/auth/data/datasources/auth_remote_data_source.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
@@ -15,6 +16,7 @@ import 'features/feed/data/datasources/post_remote_data_source.dart';
 import 'features/feed/data/datasources/post_supabase_data_source.dart';
 import 'features/feed/data/repositories/post_repository_impl.dart';
 import 'features/feed/domain/repositories/post_repository.dart';
+import 'features/feed/presentation/bloc/create_post_bloc.dart';
 import 'features/explore/data/datasources/course_remote_data_source.dart';
 import 'features/explore/data/repositories/course_repository_impl.dart';
 import 'features/explore/domain/repositories/course_repository.dart';
@@ -93,7 +95,15 @@ Future<void> init() async {
       supabaseDataSource: sl(),
     ),
   );
-  // Lưu ý: CreatePostBloc được provide ở cấp Screen — không đăng ký ở đây.
+
+  // MediaUploadService
+  sl.registerLazySingleton(() => MediaUploadService(postRepository: sl()));
+
+  // CreatePostBloc — Global (upload chạy nền, cần sống toàn vòng đời app)
+  sl.registerLazySingleton(() => CreatePostBloc(
+    postRepository: sl(),
+    uploadService: sl(),
+  ));
 
   // --- Explore (Courses) ---
   sl.registerLazySingleton<CourseRemoteDataSource>(

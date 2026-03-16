@@ -15,6 +15,12 @@ import '../../../../core/theme/app_theme.dart';
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
+  // Static callback để banner "Xem ngay" có thể chuyển Home + refresh từ bất cứ đâu
+  static _MainScreenState? _instance;
+  static void switchToHomeAndRefresh() {
+    _instance?._switchToHomeAndRefresh();
+  }
+
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
@@ -22,6 +28,20 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   int _refreshCounter = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    MainScreen._instance = this;
+  }
+
+  @override
+  void dispose() {
+    if (MainScreen._instance == this) {
+      MainScreen._instance = null;
+    }
+    super.dispose();
+  }
 
   List<Widget> _buildPages() => [
     FeedScreen(
@@ -56,18 +76,18 @@ class _MainScreenState extends State<MainScreen> {
     }
 
     if (!mounted) return;
-    final result = await Navigator.push(
+    Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const CreatePostScreen()),
     );
-    
-    // Nếu tạo bài viết thành công, chuyển về trang Home và refresh
-    if (result == true && mounted) {
-      setState(() {
-        _currentIndex = 0;
-        _refreshCounter++;
-      });
-    }
+  }
+
+  /// Chuyển về tab Home + refresh feed (gọi từ banner "Xem ngay")
+  void _switchToHomeAndRefresh() {
+    setState(() {
+      _currentIndex = 0;
+      _refreshCounter++;
+    });
   }
 
   @override

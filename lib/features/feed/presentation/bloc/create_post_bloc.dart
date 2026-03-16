@@ -18,6 +18,7 @@ class CreatePostBloc extends Bloc<CreatePostEvent, CreatePostState> {
     on<RemoveMedia>(_onRemoveMedia);
     on<SubmitPost>(_onSubmitPost);
     on<ResetCreatePost>(_onReset);
+    on<DismissUploadStatus>(_onDismiss);
   }
 
   void _onSelectPostType(SelectPostType event, Emitter<CreatePostState> emit) {
@@ -117,12 +118,17 @@ class CreatePostBloc extends Bloc<CreatePostEvent, CreatePostState> {
         (failure) => emit(CreatePostError(failure.message)),
         (post) => emit(CreatePostSuccess(post)),
       );
+      // Không tự reset — để banner hiển thị trạng thái success/error
     } catch (e) {
       emit(CreatePostError(e.toString()));
     }
   }
 
   void _onReset(ResetCreatePost event, Emitter<CreatePostState> emit) {
+    emit(CreatePostInitial());
+  }
+
+  void _onDismiss(DismissUploadStatus event, Emitter<CreatePostState> emit) {
     emit(CreatePostInitial());
   }
 }

@@ -52,6 +52,7 @@ Tài liệu này tổng hợp toàn bộ các API Backend của dự án Xpiano,
 ### Quản lý Hồ sơ đang đăng nhập (Yêu cầu Auth)
 - `GET /api/auth/me` : Trả về thông tin Profile cá nhân hiện tại.
 - `PUT /api/auth/profile` : Cập nhật thông tin Profile cá nhân.
+  - Body: `{ full_name, phone, avatar_url, date_of_birth, occupation, school, location, hobbies, instruments, bio }` (Tất cả tham số để cập nhật đều không bắt buộc. Giới thiệu: occupation(Nghề nghiệp), school(Trường học), location(Nơi ở), hobbies(Mảng sở thích []string), instruments(Mảng nhạc cụ []string), bio(Tiểu sử/Giới thiệu ngắn gọn)).
 - `PUT /api/auth/change-password` : Đổi mật khẩu.
 - `POST /api/auth/logout` : Đăng xuất.
 

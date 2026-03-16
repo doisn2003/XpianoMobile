@@ -12,6 +12,7 @@ import '../../domain/repositories/post_repository.dart';
 import '../bloc/comment_bloc.dart';
 import '../bloc/comment_event.dart';
 import '../bloc/comment_state.dart';
+import '../pages/user_profile_screen.dart';
 
 /// Bottom sheet popup hiển thị bình luận bài viết.
 /// Gọn, nhẹ, đẹp.
@@ -313,11 +314,24 @@ class _CommentTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Avatar
-          UserAvatarWidget(
-            avatarUrl: comment.author?.avatarUrl,
-            fullName: comment.author?.fullName ?? '',
-            role: comment.author?.role ?? 'user',
-            radius: 16,
+          GestureDetector(
+            onTap: () {
+              if (comment.author != null) {
+                showUserProfileBottomSheet(
+                  context,
+                  userId: comment.userId,
+                  initialName: comment.author?.fullName,
+                  initialAvatarUrl: comment.author?.avatarUrl,
+                  initialRole: comment.author?.role,
+                );
+              }
+            },
+            child: UserAvatarWidget(
+              avatarUrl: comment.author?.avatarUrl,
+              fullName: comment.author?.fullName ?? '',
+              role: comment.author?.role ?? 'user',
+              radius: 16,
+            ),
           ),
           const SizedBox(width: 10),
 
@@ -328,12 +342,25 @@ class _CommentTile extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      comment.author?.fullName ?? 'Ẩn danh',
-                      style: GoogleFonts.outfit(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: AppTheme.textPrimary,
+                    GestureDetector(
+                      onTap: () {
+                        if (comment.author != null) {
+                          showUserProfileBottomSheet(
+                            context,
+                            userId: comment.userId,
+                            initialName: comment.author?.fullName,
+                            initialAvatarUrl: comment.author?.avatarUrl,
+                            initialRole: comment.author?.role,
+                          );
+                        }
+                      },
+                      child: Text(
+                        comment.author?.fullName ?? 'Ẩn danh',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: AppTheme.textPrimary,
+                        ),
                       ),
                     ),
                     if (comment.author?.role == 'teacher') ...[

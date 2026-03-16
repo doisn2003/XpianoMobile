@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/image_utils.dart';
 import '../../domain/entities/message.dart';
+import '../../../feed/presentation/pages/user_profile_screen.dart';
 
 class MessageBubble extends StatelessWidget {
   final Message message;
@@ -36,7 +37,7 @@ class MessageBubble extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (!isMe) ...[
-              _buildAvatar(),
+              _buildAvatar(context),
               const SizedBox(width: 6),
             ],
             Flexible(
@@ -89,19 +90,32 @@ class MessageBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(BuildContext context) {
     final resolvedUrl = ImageUtils.optimizedAvatar(message.author?.avatarUrl);
     final initial = message.author?.fullName.isNotEmpty == true
         ? message.author!.fullName[0].toUpperCase()
         : '?';
 
-    return CircleAvatar(
-      radius: 14,
-      backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
-      backgroundImage: resolvedUrl.isNotEmpty ? CachedNetworkImageProvider(resolvedUrl) : null,
-      child: resolvedUrl.isEmpty
-          ? Text(initial, style: const TextStyle(fontSize: 10, color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold))
-          : null,
+    return GestureDetector(
+      onTap: () {
+        if (message.author != null) {
+          showUserProfileBottomSheet(
+            context,
+            userId: message.author!.id,
+            initialName: message.author!.fullName,
+            initialAvatarUrl: message.author!.avatarUrl,
+            initialRole: message.author!.role,
+          );
+        }
+      },
+      child: CircleAvatar(
+        radius: 14,
+        backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
+        backgroundImage: resolvedUrl.isNotEmpty ? CachedNetworkImageProvider(resolvedUrl) : null,
+        child: resolvedUrl.isEmpty
+            ? Text(initial, style: const TextStyle(fontSize: 10, color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold))
+            : null,
+      ),
     );
   }
 

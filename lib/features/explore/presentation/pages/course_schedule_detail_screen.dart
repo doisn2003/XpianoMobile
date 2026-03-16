@@ -12,6 +12,7 @@ import '../bloc/course_schedule_bloc.dart';
 import '../bloc/course_schedule_event.dart';
 import '../bloc/course_schedule_state.dart';
 import '../widgets/course_media_header.dart';
+import '../../../feed/presentation/pages/user_profile_screen.dart';
 
 class CourseScheduleDetailScreen extends StatelessWidget {
   final String courseId;
@@ -254,7 +255,20 @@ class _ScheduleDetailView extends StatelessWidget {
         final enrollment = state.enrollments[index];
         final user = enrollment.user;
         return ListTile(
-          leading: _buildUserAvatar(user),
+          leading: GestureDetector(
+            onTap: () {
+              if (user != null) {
+                showUserProfileBottomSheet(
+                  context,
+                  userId: user.id,
+                  initialName: user.fullName,
+                  initialAvatarUrl: user.avatarUrl,
+                  initialRole: 'user', // or user.role if available
+                );
+              }
+            },
+            child: _buildUserAvatar(user),
+          ),
           title: Text(user?.fullName ?? 'Học viên', style: const TextStyle(fontWeight: FontWeight.w600)),
           subtitle: enrollment.createdAt != null
               ? Text(

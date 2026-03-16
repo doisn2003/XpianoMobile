@@ -10,15 +10,33 @@ import '../bloc/user_profile_bloc.dart';
 import '../bloc/user_profile_event.dart';
 import '../bloc/user_profile_state.dart';
 
-/// Trang hồ sơ công khai của người dùng.
-/// Tabs: Thông tin | Bài đăng
-class UserProfileScreen extends StatelessWidget {
+void showUserProfileBottomSheet(
+  BuildContext context, {
+  required String userId,
+  String? initialName,
+  String? initialAvatarUrl,
+  String? initialRole,
+}) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => UserProfileBottomSheet(
+      userId: userId,
+      initialName: initialName,
+      initialAvatarUrl: initialAvatarUrl,
+      initialRole: initialRole,
+    ),
+  );
+}
+
+class UserProfileBottomSheet extends StatelessWidget {
   final String userId;
   final String? initialName;
   final String? initialAvatarUrl;
   final String? initialRole;
 
-  const UserProfileScreen({
+  const UserProfileBottomSheet({
     super.key,
     required this.userId,
     this.initialName,
@@ -32,10 +50,37 @@ class UserProfileScreen extends StatelessWidget {
       create: (_) => UserProfileBloc(
         postRepository: GetIt.instance<PostRepository>(),
       )..add(UserProfileLoadRequested(userId)),
-      child: _UserProfileBody(
-        initialName: initialName,
-        initialAvatarUrl: initialAvatarUrl,
-        initialRole: initialRole,
+      child: FractionallySizedBox(
+        heightFactor: 0.9,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppTheme.bgCream,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            children: [
+              // Modal grabber
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.textSecondary.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: _UserProfileBody(
+                  initialName: initialName,
+                  initialAvatarUrl: initialAvatarUrl,
+                  initialRole: initialRole,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -54,56 +99,51 @@ class _UserProfileBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.bgCream,
-      appBar: AppBar(
-        title: Text(initialName ?? 'Hồ sơ', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: BlocBuilder<UserProfileBloc, UserProfileState>(
-        builder: (context, state) {
-          if (state is UserProfileLoading) {
-            return const Center(child: CircularProgressIndicator(color: AppTheme.primaryGold));
-          }
+    return BlocBuilder<UserProfileBloc, UserProfileState>(
+      builder: (context, state) {
+        if (state is UserProfileLoading) {
+          return const Center(child: CircularProgressIndicator(color: AppTheme.primaryGold));
+        }
 
-          if (state is UserProfileError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: AppTheme.textSecondary.withValues(alpha: 128)),
-                  const SizedBox(height: 12),
-                  Text('Không thể tải hồ sơ', style: GoogleFonts.outfit(fontSize: 16, color: AppTheme.textPrimary)),
-                  const SizedBox(height: 4),
-                  Text(state.message, style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textSecondary)),
-                ],
-              ),
-            );
-          }
+        if (state is UserProfileError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: AppTheme.textSecondary.withValues(alpha: 128)),
+                const SizedBox(height: 12),
+                Text('Không thể tải hồ sơ', style: GoogleFonts.outfit(fontSize: 16, color: AppTheme.textPrimary)),
+                const SizedBox(height: 4),
+                Text(state.message, style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textSecondary)),
+              ],
+            ),
+          );
+        }
 
-          if (state is UserProfileLoaded) {
-            return _ProfileContent(
-              state: state,
-              initialAvatarUrl: initialAvatarUrl,
-              initialRole: initialRole,
-            );
-          }
+        if (state is UserProfileLoaded) {
+          return _ProfileContent(
+            state: state,
+            initialName: initialName,
+            initialAvatarUrl: initialAvatarUrl,
+            initialRole: initialRole,
+          );
+        }
 
-          return const SizedBox.shrink();
-        },
-      ),
+        return const SizedBox.shrink();
+      },
     );
   }
 }
 
 class _ProfileContent extends StatefulWidget {
   final UserProfileLoaded state;
+  final String? initialName;
   final String? initialAvatarUrl;
   final String? initialRole;
 
   const _ProfileContent({
     required this.state,
+    this.initialName,
     this.initialAvatarUrl,
     this.initialRole,
   });
@@ -130,13 +170,13 @@ class _ProfileContentState extends State<_ProfileContent> with SingleTickerProvi
   @override
   Widget build(BuildContext context) {
     final profileData = widget.state.profile;
-    final profileInfo = profileData['profile'] as Map<String, dynamic>? ?? {};
     final stats = profileData['stats'] as Map<String, dynamic>? ?? {};
     final isTeacher = profileData['isTeacher'] == true;
+    final isFollowing = profileData['is_following'] == true;
 
-    final fullName = profileInfo['full_name'] ?? '';
-    final avatarUrl = profileInfo['avatar_url'] ?? widget.initialAvatarUrl;
-    final role = profileInfo['role'] ?? widget.initialRole ?? 'user';
+    final fullName = profileData['full_name'] ?? widget.initialName ?? '';
+    final avatarUrl = profileData['avatar_url'] ?? widget.initialAvatarUrl;
+    final role = profileData['role'] ?? widget.initialRole ?? 'user';
     final followersCount = stats['followers_count'] ?? 0;
     final followingCount = stats['following_count'] ?? 0;
 
@@ -145,10 +185,10 @@ class _ProfileContentState extends State<_ProfileContent> with SingleTickerProvi
         return [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Column(
                 children: [
-                  // Avatar lớn
+                  // Avatar
                   UserAvatarWidget(
                     avatarUrl: avatarUrl,
                     fullName: fullName,
@@ -157,7 +197,7 @@ class _ProfileContentState extends State<_ProfileContent> with SingleTickerProvi
                   ),
                   const SizedBox(height: 12),
 
-                  // Tên
+                  // Name
                   Text(
                     fullName,
                     style: GoogleFonts.outfit(
@@ -168,7 +208,7 @@ class _ProfileContentState extends State<_ProfileContent> with SingleTickerProvi
                   ),
                   const SizedBox(height: 4),
 
-                  // Role badge
+                  // Role badge (if teacher)
                   if (isTeacher)
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
@@ -183,7 +223,7 @@ class _ProfileContentState extends State<_ProfileContent> with SingleTickerProvi
                     ),
                   const SizedBox(height: 16),
 
-                  // Followers / Following stats
+                  // Stats
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -193,6 +233,25 @@ class _ProfileContentState extends State<_ProfileContent> with SingleTickerProvi
                       const SizedBox(width: 40),
                       _StatColumn(count: widget.state.posts.length, label: 'Bài viết'),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Follow/Unfollow Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: isFollowing
+                        ? OutlinedButton(
+                            onPressed: () {
+                              context.read<UserProfileBloc>().add(UserProfileToggleFollow());
+                            },
+                            child: const Text('Đã theo dõi'),
+                          )
+                        : ElevatedButton(
+                            onPressed: () {
+                              context.read<UserProfileBloc>().add(UserProfileToggleFollow());
+                            },
+                            child: const Text('Theo dõi'),
+                          ),
                   ),
                   const SizedBox(height: 12),
                 ],
@@ -254,87 +313,130 @@ class _StatColumn extends StatelessWidget {
   }
 }
 
-/// Tab thông tin cơ bản
 class _InfoTab extends StatelessWidget {
   final Map<String, dynamic> profileData;
   const _InfoTab({required this.profileData});
 
   @override
   Widget build(BuildContext context) {
-    final profileInfo = profileData['profile'] as Map<String, dynamic>? ?? {};
-    final stats = profileData['stats'] as Map<String, dynamic>? ?? {};
-    final isTeacher = profileData['isTeacher'] == true;
+    final bio = profileData['bio'] as String?;
+    final dateOfBirth = profileData['date_of_birth'] as String?;
+    final occupation = profileData['occupation'] as String?;
+    final school = profileData['school'] as String?;
+    final location = profileData['location'] as String?;
+    final hobbies = (profileData['hobbies'] as List?)?.map((e) => e.toString()).toList() ?? [];
+    final instruments = (profileData['instruments'] as List?)?.map((e) => e.toString()).toList() ?? [];
 
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        _InfoCard(
-          icon: Icons.person_outline,
-          title: 'Tên',
-          value: profileInfo['full_name'] ?? 'Chưa cập nhật',
-        ),
-        _InfoCard(
-          icon: Icons.badge_outlined,
-          title: 'Loại tài khoản',
-          value: isTeacher ? 'Giáo viên (GV)' : 'Người dùng',
-        ),
-        _InfoCard(
-          icon: Icons.people_outline,
-          title: 'Người theo dõi',
-          value: '${stats['followers_count'] ?? 0}',
-        ),
-        _InfoCard(
-          icon: Icons.person_add_outlined,
-          title: 'Đang theo dõi',
-          value: '${stats['following_count'] ?? 0}',
-        ),
-        if (isTeacher && stats['courses_count'] != null)
-          _InfoCard(
-            icon: Icons.school_outlined,
-            title: 'Số khóa học',
-            value: '${stats['courses_count']}',
+        if (bio != null && bio.isNotEmpty) ...[
+          Text(
+            bio,
+            style: GoogleFonts.outfit(fontSize: 15, color: AppTheme.textPrimary),
+            textAlign: TextAlign.center,
           ),
-        if (isTeacher && stats['total_students'] != null)
-          _InfoCard(
-            icon: Icons.groups_outlined,
-            title: 'Tổng học viên',
-            value: '${stats['total_students']}',
+          const SizedBox(height: 20),
+        ],
+
+        // Basic Info Box
+        if (dateOfBirth != null || occupation != null || school != null || location != null) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.cardWhite,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.dividerColor),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (dateOfBirth != null && dateOfBirth.isNotEmpty)
+                  _buildInfoRow(Icons.cake_outlined, 'Sinh nhật', _formatDate(dateOfBirth)),
+                if (occupation != null && occupation.isNotEmpty)
+                  _buildInfoRow(Icons.work_outline, 'Nghề nghiệp', occupation),
+                if (school != null && school.isNotEmpty)
+                  _buildInfoRow(Icons.school_outlined, 'Trường học', school),
+                if (location != null && location.isNotEmpty)
+                  _buildInfoRow(Icons.location_on_outlined, 'Nơi ở', location),
+              ],
+            ),
           ),
+          const SizedBox(height: 20),
+        ],
+
+        // Hobbies
+        if (hobbies.isNotEmpty) ...[
+          Text('Sở thích', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: hobbies.map((h) => _buildBadge(h, Icons.favorite_border)).toList(),
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // Instruments
+        if (instruments.isNotEmpty) ...[
+          Text('Nhạc cụ', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: instruments.map((i) => _buildBadge(i, Icons.music_note_outlined)).toList(),
+          ),
+          const SizedBox(height: 20),
+        ],
       ],
     );
   }
-}
 
-class _InfoCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String value;
-  const _InfoCard({required this.icon, required this.title, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: AppTheme.cardWhite,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.dividerColor),
-      ),
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppTheme.primaryGold, size: 22),
+          Icon(icon, color: AppTheme.primaryGold, size: 20),
           const SizedBox(width: 12),
-          Text(title, style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 14)),
-          const Spacer(),
-          Text(value, style: GoogleFonts.outfit(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 14)),
+          Text('$label: ', style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 14)),
+          Expanded(
+            child: Text(value, style: GoogleFonts.outfit(color: AppTheme.textPrimary, fontWeight: FontWeight.w500, fontSize: 14)),
+          ),
         ],
       ),
     );
   }
+
+  Widget _buildBadge(String text, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.bgCreamDarker,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppTheme.primaryGoldDark),
+          const SizedBox(width: 6),
+          Text(text, style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textPrimary, fontWeight: FontWeight.w500)),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(String isoString) {
+    try {
+      final date = DateTime.parse(isoString);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (_) {
+      return isoString;
+    }
+  }
 }
 
-/// Tab bài đăng
 class _PostsTab extends StatelessWidget {
   final UserProfileLoaded state;
   const _PostsTab({required this.state});
@@ -378,7 +480,6 @@ class _PostsTab extends StatelessWidget {
   }
 }
 
-/// Card hiển thị bài viết đơn giản trong profile
 class _PostCard extends StatelessWidget {
   final Post post;
   const _PostCard({required this.post});
@@ -485,7 +586,6 @@ class _PostCard extends StatelessWidget {
   }
 }
 
-/// Custom SliverPersistentHeaderDelegate cho TabBar
 class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   final TabBar tabBar;
   _TabBarDelegate(this.tabBar);

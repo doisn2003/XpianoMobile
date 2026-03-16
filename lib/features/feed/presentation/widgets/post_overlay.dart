@@ -209,16 +209,12 @@ class _PostInfo extends StatelessWidget {
               }
 
               if (!context.mounted) return;
-              Navigator.push(
+              showUserProfileBottomSheet(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => UserProfileScreen(
-                    userId: post.author!.id,
-                    initialName: post.author!.fullName,
-                    initialAvatarUrl: post.author!.avatarUrl,
-                    initialRole: post.author!.role,
-                  ),
-                ),
+                userId: post.author!.id,
+                initialName: post.author!.fullName,
+                initialAvatarUrl: post.author!.avatarUrl,
+                initialRole: post.author!.role,
               );
             },
             child: Row(

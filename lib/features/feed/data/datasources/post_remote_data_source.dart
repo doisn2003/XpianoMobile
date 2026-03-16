@@ -21,6 +21,7 @@ abstract class PostRemoteDataSource {
   // User profile
   Future<Map<String, dynamic>> getUserPublicProfile(String userId);
   Future<List<PostModel>> getUserPosts(String userId, {String? cursor, int limit = 10});
+  Future<void> toggleFollowUser(String userId, bool isCurrentlyFollowing);
 }
 
 class PostRemoteDataSourceImpl implements PostRemoteDataSource {
@@ -132,5 +133,14 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
     final response = await dioClient.get('/posts/user/$userId', queryParameters: params);
     final data = response.data['data'] as List? ?? [];
     return data.map((e) => PostModel.fromJson(Map<String, dynamic>.from(e))).toList();
+  }
+
+  @override
+  Future<void> toggleFollowUser(String userId, bool isCurrentlyFollowing) async {
+    if (isCurrentlyFollowing) {
+      await dioClient.delete('/social/users/$userId/follow');
+    } else {
+      await dioClient.post('/social/users/$userId/follow');
+    }
   }
 }

@@ -11,6 +11,7 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
   UserProfileBloc({required this.postRepository}) : super(UserProfileInitial()) {
     on<UserProfileLoadRequested>(_onLoad);
     on<UserProfileLoadMorePosts>(_onLoadMorePosts);
+    on<UserProfileToggleFollow>(_onToggleFollow);
   }
 
   Future<void> _onLoad(UserProfileLoadRequested event, Emitter<UserProfileState> emit) async {
@@ -53,6 +54,35 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
         hasReachedEnd: newPosts.length < _pageSize,
         isLoadingMorePosts: false,
       )),
+    );
+  }
+
+  Future<void> _onToggleFollow(UserProfileToggleFollow event, Emitter<UserProfileState> emit) async {
+    final current = state;
+    if (current is! UserProfileLoaded || _userId == null) return;
+
+    final isFollowing = current.profile['is_following'] == true;
+    final stats = current.profile['stats'] as Map<String, dynamic>? ?? {};
+    final followersCount = stats['followers_count'] ?? 0;
+
+    // Optimistic update
+    final newProfile = Map<String, dynamic>.from(current.profile);
+    newProfile['is_following'] = !isFollowing;
+
+    final newStats = Map<String, dynamic>.from(stats);
+    newStats['followers_count'] = isFollowing ? (followersCount - 1) : (followersCount + 1);
+    newProfile['stats'] = newStats;
+
+    emit(current.copyWith(profile: newProfile));
+
+    final result = await postRepository.toggleFollowUser(_userId!, isFollowing);
+
+    result.fold(
+      (failure) {
+        // Revert on failure
+        emit(current);
+      },
+      (_) {},
     );
   }
 }

@@ -16,3 +16,6 @@ class UserProfileLoadRequested extends UserProfileEvent {
 
 /// Load thêm bài viết (pagination)
 class UserProfileLoadMorePosts extends UserProfileEvent {}
+
+/// Thay đổi trạng thái follow
+class UserProfileToggleFollow extends UserProfileEvent {}

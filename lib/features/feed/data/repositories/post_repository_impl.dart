@@ -205,4 +205,14 @@ class PostRepositoryImpl implements PostRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, bool>> toggleFollowUser(String userId, bool isCurrentlyFollowing) async {
+    try {
+      await remoteDataSource.toggleFollowUser(userId, isCurrentlyFollowing);
+      return Right(!isCurrentlyFollowing);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

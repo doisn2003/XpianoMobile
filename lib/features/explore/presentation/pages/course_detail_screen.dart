@@ -15,6 +15,7 @@ import '../bloc/course_detail_event.dart';
 import '../bloc/course_detail_state.dart';
 import '../widgets/course_media_header.dart';
 import '../widgets/course_order_sheet.dart';
+import '../../../feed/presentation/pages/user_profile_screen.dart';
 
 class CourseDetailScreen extends StatelessWidget {
   final String courseId;
@@ -137,18 +138,29 @@ class _CourseDetailView extends StatelessWidget {
 
                         // Teacher info
                         if (course.teacher != null) ...[
-                          Row(
-                            children: [
-                              _buildTeacherAvatar(course.teacher!),
-                              const SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(course.teacher!.fullName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                                  const Text('Giáo viên', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                                ],
-                              ),
-                            ],
+                          GestureDetector(
+                            onTap: () {
+                              showUserProfileBottomSheet(
+                                context,
+                                userId: course.teacher!.id,
+                                initialName: course.teacher!.fullName,
+                                initialAvatarUrl: course.teacher!.avatarUrl,
+                                initialRole: 'teacher',
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                _buildTeacherAvatar(course.teacher!),
+                                const SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(course.teacher!.fullName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                    const Text('Giáo viên', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 16),
                         ],

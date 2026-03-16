@@ -59,4 +59,5 @@ abstract class PostRepository {
   // ─── User Profile ───
   Future<Either<Failure, Map<String, dynamic>>> getUserPublicProfile(String userId);
   Future<Either<Failure, List<Post>>> getUserPosts(String userId, {String? cursor, int limit = 10});
+  Future<Either<Failure, bool>> toggleFollowUser(String userId, bool isCurrentlyFollowing);
 }

@@ -13,6 +13,7 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> registerWithOtp(
       String email, String otp, String password, String fullName, String phone, String role, String dob);
   Future<UserModel> getCurrentUser();
+  Future<UserModel> updateProfile(Map<String, dynamic> data);
   Future<void> logout();
 }
 
@@ -151,6 +152,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       }
       throw ServerException(
         message: e.response?.data['message'] ?? 'Lỗi tải thông tin cá nhân',
+      );
+    } catch (e) {
+      throw ServerException(message: 'Lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<UserModel> updateProfile(Map<String, dynamic> data) async {
+    try {
+      final response = await dioClient.put('/auth/profile', data: data);
+      return UserModel.fromJson(response.data['data']);
+    } on DioException catch (e) {
+      throw ServerException(
+        message: e.response?.data['message'] ?? 'Lỗi cập nhật hồ sơ',
       );
     } catch (e) {
       throw ServerException(message: 'Lỗi không xác định: $e');

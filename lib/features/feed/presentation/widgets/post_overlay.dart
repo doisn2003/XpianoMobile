@@ -209,16 +209,12 @@ class _PostInfo extends StatelessWidget {
               }
 
               if (!context.mounted) return;
-              Navigator.push(
+              showUserProfileBottomSheet(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => UserProfileScreen(
-                    userId: post.author!.id,
-                    initialName: post.author!.fullName,
-                    initialAvatarUrl: post.author!.avatarUrl,
-                    initialRole: post.author!.role,
-                  ),
-                ),
+                userId: post.author!.id,
+                initialName: post.author!.fullName,
+                initialAvatarUrl: post.author!.avatarUrl,
+                initialRole: post.author!.role,
               );
             },
             child: Row(
@@ -232,7 +228,7 @@ class _PostInfo extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '@${post.author!.fullName}',
+                  '${post.author!.fullName}',
                   style: GoogleFonts.outfit(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 if (post.author!.role == 'teacher') ...[

@@ -19,6 +19,9 @@ abstract class AuthRepository {
   /// Lấy thông tin phiên đăng nhập hiện tại từ API (dựa trên cache Token)
   Future<Either<Failure, User>> getCurrentUser();
 
+  /// Cập nhật thông tin Profile cá nhân
+  Future<Either<Failure, User>> updateProfile(Map<String, dynamic> data);
+
   /// Đăng xuất khỏi thiết bị
   Future<Either<Failure, void>> logout();
 }

@@ -24,6 +24,9 @@ import 'features/chat/data/datasources/chat_remote_data_source.dart';
 import 'features/chat/data/datasources/user_search_data_source.dart';
 import 'features/chat/data/repositories/chat_repository_impl.dart';
 import 'features/chat/domain/repositories/chat_repository.dart';
+import 'features/profile/data/datasources/profile_remote_data_source.dart';
+import 'features/profile/data/repositories/profile_repository_impl.dart';
+import 'features/profile/domain/repositories/profile_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -129,5 +132,14 @@ Future<void> init() async {
     () => UserSearchDataSourceImpl(dioClient: sl()),
   );
   // BLoCs (ConversationList, ChatRoom) được provide ở cấp Screen.
+
+  // --- Profile ---
+  sl.registerLazySingleton<ProfileRemoteDataSource>(
+    () => ProfileRemoteDataSourceImpl(dioClient: sl()),
+  );
+
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(remoteDataSource: sl()),
+  );
 }
 

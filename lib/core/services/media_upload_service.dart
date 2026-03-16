@@ -46,7 +46,7 @@ class MediaUploadService {
       if (uploadType == 'post_video' || uploadType == 'course_video' || uploadType == 'piano_video') {
         onStatusChange?.call('Đang nén video...');
         compressedFile = await _compressVideo(file);
-      } else if (uploadType == 'post_image' || uploadType == 'course_image' || uploadType == 'piano_image') {
+      } else if (uploadType == 'post_image' || uploadType == 'course_image' || uploadType == 'piano_image' || uploadType == 'user_avatar') {
         onStatusChange?.call('Đang nén ảnh...');
         compressedFile = await _compressImage(file);
       }

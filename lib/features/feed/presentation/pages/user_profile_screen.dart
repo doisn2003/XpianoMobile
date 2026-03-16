@@ -50,37 +50,47 @@ class UserProfileBottomSheet extends StatelessWidget {
       create: (_) => UserProfileBloc(
         postRepository: GetIt.instance<PostRepository>(),
       )..add(UserProfileLoadRequested(userId)),
-      child: FractionallySizedBox(
-        heightFactor: 0.9,
-        child: Container(
-          decoration: const BoxDecoration(
-            color: AppTheme.bgCream,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              // Modal grabber
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppTheme.textSecondary.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        snap: true,
+        builder: (context, scrollController) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: AppTheme.bgCream,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
+              bottom: true,
+              child: Column(
+                children: [
+                  // Modal grabber
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 12),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppTheme.textSecondary.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
-                ),
+                  Expanded(
+                    child: _UserProfileBody(
+                      initialName: initialName,
+                      initialAvatarUrl: initialAvatarUrl,
+                      initialRole: initialRole,
+                      scrollController: scrollController,
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
-                child: _UserProfileBody(
-                  initialName: initialName,
-                  initialAvatarUrl: initialAvatarUrl,
-                  initialRole: initialRole,
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -90,11 +100,13 @@ class _UserProfileBody extends StatelessWidget {
   final String? initialName;
   final String? initialAvatarUrl;
   final String? initialRole;
+  final ScrollController scrollController;
 
   const _UserProfileBody({
     this.initialName,
     this.initialAvatarUrl,
     this.initialRole,
+    required this.scrollController,
   });
 
   @override
@@ -126,6 +138,7 @@ class _UserProfileBody extends StatelessWidget {
             initialName: initialName,
             initialAvatarUrl: initialAvatarUrl,
             initialRole: initialRole,
+            scrollController: scrollController,
           );
         }
 
@@ -140,12 +153,14 @@ class _ProfileContent extends StatefulWidget {
   final String? initialName;
   final String? initialAvatarUrl;
   final String? initialRole;
+  final ScrollController scrollController;
 
   const _ProfileContent({
     required this.state,
     this.initialName,
     this.initialAvatarUrl,
     this.initialRole,
+    required this.scrollController,
   });
 
   @override
@@ -170,97 +185,72 @@ class _ProfileContentState extends State<_ProfileContent> with SingleTickerProvi
   @override
   Widget build(BuildContext context) {
     final profileData = widget.state.profile;
-    final stats = profileData['stats'] as Map<String, dynamic>? ?? {};
-    final isTeacher = profileData['isTeacher'] == true;
+    final user = (profileData['user'] as Map<String, dynamic>?) ?? profileData;
+    final stats = profileData['stats'] as Map<String, dynamic>? ?? user['stats'] as Map<String, dynamic>? ?? {};
+    final isTeacher = user['role'] == 'teacher' || profileData['isTeacher'] == true;
     final isFollowing = profileData['is_following'] == true;
 
-    final fullName = profileData['full_name'] ?? widget.initialName ?? '';
-    final avatarUrl = profileData['avatar_url'] ?? widget.initialAvatarUrl;
-    final role = profileData['role'] ?? widget.initialRole ?? 'user';
+    final fullName = user['full_name'] ?? user['fullName'] ?? widget.initialName ?? '';
+    final avatarUrl = user['avatar_url'] ?? user['avatar'] ?? widget.initialAvatarUrl;
+    final role = user['role'] ?? widget.initialRole ?? 'user';
     final followersCount = stats['followers_count'] ?? 0;
     final followingCount = stats['following_count'] ?? 0;
 
-    return NestedScrollView(
-      headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Column(
+    return ListView(
+      controller: widget.scrollController,
+      padding: EdgeInsets.zero,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Column(
+            children: [
+              // Avatar
+              UserAvatarWidget(
+                avatarUrl: avatarUrl,
+                fullName: fullName,
+                role: role,
+                radius: 38,
+              ),
+              const SizedBox(height: 8),
+
+              // Name
+              Text(
+                fullName,
+                style: GoogleFonts.outfit(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Stats
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Avatar
-                  UserAvatarWidget(
-                    avatarUrl: avatarUrl,
-                    fullName: fullName,
-                    role: role,
-                    radius: 44,
+                  _StatColumn(
+                    count: followersCount, 
+                    label: 'Followers',
+                    isFollowing: isFollowing,
+                    onFollowTap: () => context.read<UserProfileBloc>().add(UserProfileToggleFollow()),
                   ),
-                  const SizedBox(height: 12),
-
-                  // Name
-                  Text(
-                    fullName,
-                    style: GoogleFonts.outfit(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Role badge (if teacher)
-                  if (isTeacher)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(
-                        gradient: AppTheme.goldGradient,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Giáo viên',
-                        style: GoogleFonts.outfit(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  const SizedBox(height: 16),
-
-                  // Stats
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _StatColumn(count: followersCount, label: 'Followers'),
-                      const SizedBox(width: 40),
-                      _StatColumn(count: followingCount, label: 'Following'),
-                      const SizedBox(width: 40),
-                      _StatColumn(count: widget.state.posts.length, label: 'Bài viết'),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Follow/Unfollow Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: isFollowing
-                        ? OutlinedButton(
-                            onPressed: () {
-                              context.read<UserProfileBloc>().add(UserProfileToggleFollow());
-                            },
-                            child: const Text('Đã theo dõi'),
-                          )
-                        : ElevatedButton(
-                            onPressed: () {
-                              context.read<UserProfileBloc>().add(UserProfileToggleFollow());
-                            },
-                            child: const Text('Theo dõi'),
-                          ),
-                  ),
-                  const SizedBox(height: 12),
+                  const SizedBox(width: 40),
+                  _StatColumn(count: followingCount, label: 'Following'),
+                  const SizedBox(width: 40),
+                  _StatColumn(count: widget.state.posts.length, label: 'Bài viết'),
                 ],
               ),
-            ),
+              const SizedBox(height: 8),
+            ],
           ),
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _TabBarDelegate(
+        ),
+        
+        // Custom Tab-like behavior inside ListView to maintain sync with DraggableScrollableSheet
+        DefaultTabController(
+          length: 2,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               TabBar(
                 controller: _tabController,
                 labelColor: AppTheme.primaryGold,
@@ -272,17 +262,22 @@ class _ProfileContentState extends State<_ProfileContent> with SingleTickerProvi
                   Tab(text: 'Bài đăng'),
                 ],
               ),
-            ),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.6,
+                ),
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _InfoTab(profileData: user),
+                    _PostsTab(state: widget.state),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ];
-      },
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _InfoTab(profileData: profileData),
-          _PostsTab(state: widget.state),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -290,18 +285,43 @@ class _ProfileContentState extends State<_ProfileContent> with SingleTickerProvi
 class _StatColumn extends StatelessWidget {
   final int count;
   final String label;
-  const _StatColumn({required this.count, required this.label});
+  final bool? isFollowing;
+  final VoidCallback? onFollowTap;
+
+  const _StatColumn({
+    required this.count, 
+    required this.label,
+    this.isFollowing,
+    this.onFollowTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          _formatCount(count),
-          style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              _formatCount(count),
+              style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+            ),
+            if (onFollowTap != null) ...[
+              const SizedBox(width: 4),
+              GestureDetector(
+                onTap: onFollowTap,
+                child: Icon(
+                  isFollowing == true ? Icons.person_remove_outlined : Icons.person_add_alt_1_outlined,
+                  size: 18,
+                  color: isFollowing == true ? AppTheme.textSecondary : AppTheme.primaryGold,
+                ),
+              ),
+            ],
+          ],
         ),
-        Text(label, style: GoogleFonts.outfit(fontSize: 12, color: AppTheme.textSecondary)),
+        Text(label, style: GoogleFonts.outfit(fontSize: 11, color: AppTheme.textSecondary)),
       ],
     );
   }
@@ -319,13 +339,48 @@ class _InfoTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bio = profileData['bio'] as String?;
-    final dateOfBirth = profileData['date_of_birth'] as String?;
-    final occupation = profileData['occupation'] as String?;
-    final school = profileData['school'] as String?;
-    final location = profileData['location'] as String?;
-    final hobbies = (profileData['hobbies'] as List?)?.map((e) => e.toString()).toList() ?? [];
-    final instruments = (profileData['instruments'] as List?)?.map((e) => e.toString()).toList() ?? [];
+    // Hàm helper để tìm dữ liệu trong cả profileData và profileData['user'] hoặc profileData['profile']
+    dynamic find(String key1, [String? key2]) {
+      final user = profileData['user'] as Map<String, dynamic>? ?? {};
+      final profile = profileData['profile'] as Map<String, dynamic>? ?? {};
+      
+      return profileData[key1] ?? profileData[key2] ?? 
+             user[key1] ?? user[key2] ?? 
+             profile[key1] ?? profile[key2];
+    }
+
+    final bio = find('bio')?.toString();
+    final dateOfBirth = find('date_of_birth', 'dateOfBirth')?.toString();
+    final occupation = find('occupation')?.toString();
+    final school = find('school')?.toString();
+    final location = find('location')?.toString();
+    
+    final hobbiesData = find('hobbies');
+    final hobbies = hobbiesData is List ? hobbiesData.map((e) => e.toString()).toList() : [];
+    
+    final instrumentsData = find('instruments');
+    final instruments = instrumentsData is List ? instrumentsData.map((e) => e.toString()).toList() : [];
+
+    final hasAnyInfo = (bio != null && bio.isNotEmpty) || 
+                       (dateOfBirth != null && dateOfBirth.isNotEmpty) || 
+                       (occupation != null && occupation.isNotEmpty) || 
+                       (school != null && school.isNotEmpty) || 
+                       (location != null && location.isNotEmpty) || 
+                       hobbies.isNotEmpty || instruments.isNotEmpty;
+
+    if (!hasAnyInfo) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.info_outline, size: 48, color: AppTheme.textSecondary.withValues(alpha: 0.3)),
+            const SizedBox(height: 12),
+            Text('Chưa có thông tin giới thiệu', 
+              style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 14)),
+          ],
+        ),
+      );
+    }
 
     return ListView(
       padding: const EdgeInsets.all(20),

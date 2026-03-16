@@ -27,6 +27,8 @@ import 'features/chat/domain/repositories/chat_repository.dart';
 import 'features/profile/data/datasources/profile_remote_data_source.dart';
 import 'features/profile/data/repositories/profile_repository_impl.dart';
 import 'features/profile/domain/repositories/profile_repository.dart';
+import 'features/profile/presentation/bloc/edit_profile_bloc.dart';
+import 'features/profile/presentation/bloc/wallet_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -141,5 +143,12 @@ Future<void> init() async {
   sl.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(remoteDataSource: sl()),
   );
+
+  sl.registerLazySingleton(() => WalletBloc(repository: sl()));
+
+  sl.registerFactory(() => EditProfileBloc(
+    authRepository: sl(),
+    mediaUploadService: sl(),
+  ));
 }
 

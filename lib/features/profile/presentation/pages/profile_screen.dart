@@ -7,6 +7,7 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../auth/presentation/pages/login_screen.dart';
 import 'active_rentals_screen.dart';
 import 'affiliate_screen.dart';
+import 'edit_profile_screen.dart';
 import 'favorites_screen.dart';
 import 'my_courses_screen.dart';
 import 'order_history_screen.dart';
@@ -65,9 +66,9 @@ class ProfileScreen extends StatelessWidget {
               subtitle: Text(isTeacher ? 'Giáo viên' : 'Học viên', style: const TextStyle(color: AppTheme.textSecondary)),
               trailing: OutlinedButton.icon(
                 onPressed: () {
-                  // TODO: Gọi màn hình "Chỉnh sửa hồ sơ" - API vừa cập nhật
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Tính năng chỉnh sửa hồ sơ đang phát triển')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => EditProfileScreen(user: user)),
                   );
                 },
                 icon: const Icon(Icons.edit, size: 16),

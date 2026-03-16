@@ -228,7 +228,7 @@ class _PostInfo extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '@${post.author!.fullName}',
+                  '${post.author!.fullName}',
                   style: GoogleFonts.outfit(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 if (post.author!.role == 'teacher') ...[

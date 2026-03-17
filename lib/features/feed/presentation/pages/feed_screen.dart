@@ -207,7 +207,7 @@ class _FeedBodyState extends State<_FeedBody> {
 }
 
 /// Mỗi trang trong PageView
-class _PostPage extends StatelessWidget {
+class _PostPage extends StatefulWidget {
   final Post post;
   final bool isActive;
   final bool isTabActive;
@@ -219,37 +219,67 @@ class _PostPage extends StatelessWidget {
   });
 
   @override
+  State<_PostPage> createState() => _PostPageState();
+}
+
+class _PostPageState extends State<_PostPage> {
+  final List<Map<String, dynamic>> _hearts = [];
+
+  void _handleDoubleTapDown(TapDownDetails details) {
+    // Chúng ta chỉ kích hoạt animation khi đây là phát súng double tap.
+    // Lưu ý: GestureDetector.onDoubleTapDown trigger khi phát hiện double tap.
+    final id = DateTime.now().microsecondsSinceEpoch.toString();
+    setState(() {
+      _hearts.add({
+        'id': id,
+        'position': details.localPosition,
+      });
+    });
+
+    if (!widget.post.isLiked) {
+      context.read<FeedBloc>().add(FeedToggleLike(widget.post.id, widget.post.isLiked));
+    }
+  }
+
+  void _removeHeart(String id) {
+    setState(() {
+      _hearts.removeWhere((h) => h['id'] == id);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onDoubleTap: () => _handleDoubleTapToLike(context),
+      onDoubleTapDown: _handleDoubleTapDown,
       child: Stack(
         fit: StackFit.expand,
         children: [
           _buildContent(context),
-          PostOverlay(post: post),
+          PostOverlay(post: widget.post),
+          
+          // Trái tim bay lên (TikTok style)
+          ..._hearts.map((h) => _HeartAnimation(
+                key: ValueKey(h['id']),
+                position: h['position'],
+                onFinished: () => _removeHeart(h['id']),
+              )),
         ],
       ),
     );
   }
 
-  void _handleDoubleTapToLike(BuildContext context) {
-    if (!post.isLiked) {
-      context.read<FeedBloc>().add(FeedToggleLike(post.id, post.isLiked));
-    }
-  }
-
   Widget _buildContent(BuildContext context) {
-    switch (post.mediaType) {
+    switch (widget.post.mediaType) {
       case 'video':
         return _VideoContent(
-          post: post,
-          isActive: isActive,
-          isTabActive: isTabActive,
+          post: widget.post,
+          isActive: widget.isActive,
+          isTabActive: widget.isTabActive,
         );
       case 'image':
-        return _ImageContent(post: post);
+        return _ImageContent(post: widget.post);
       default:
-        return _TextContent(post: post);
+        return _TextContent(post: widget.post);
     }
   }
 }
@@ -542,5 +572,112 @@ class _TextContent extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Widget hiệu ứng trái tim bay lên khi double tap (TikTok style)
+class _HeartAnimation extends StatefulWidget {
+  final Offset position;
+  final VoidCallback onFinished;
+
+  const _HeartAnimation({
+    super.key,
+    required this.position,
+    required this.onFinished,
+  });
+
+  @override
+  State<_HeartAnimation> createState() => _HeartAnimationState();
+}
+
+class _HeartAnimationState extends State<_HeartAnimation> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scale;
+  late Animation<double> _opacity;
+  late Animation<double> _rotation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+
+    _scale = TweenSequence([
+      TweenSequenceItem(tween: Tween<double>(begin: 0.0, end: 1.4).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.4, end: 1.0), weight: 20),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 1.6), weight: 40),
+    ]).animate(_controller);
+
+    _opacity = TweenSequence([
+      TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 1.0), weight: 60),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 0.0), weight: 40),
+    ]).animate(_controller);
+
+    // Random góc xoay nhẹ cho tự nhiên
+    final randomRotation = (DateTime.now().millisecond % 40 - 20) * 0.01;
+    _rotation = Tween<double>(begin: randomRotation, end: randomRotation * 2).animate(_controller);
+
+    _controller.forward().then((_) => widget.onFinished());
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: widget.position.dx - 60,
+      top: widget.position.dy - 60,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Opacity(
+            opacity: _opacity.value,
+            child: Transform.rotate(
+              angle: _rotation.value,
+              child: Transform.scale(
+                scale: _scale.value,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Shadow/Glow nhạt bên dưới
+                    Icon(
+                      Icons.favorite,
+                      color: Colors.black.withValues(alpha: 51),
+                      size: 110,
+                    ),
+                    // Trái tim chính
+                    const ShaderMask(
+                      shaderCallback: _createGradient,
+                      child: Icon(
+                        Icons.favorite,
+                        color: Colors.white,
+                        size: 100,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  static Shader _createGradient(Rect bounds) {
+    return const LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: [
+        Color(0xFFE52D27), // Đỏ đậm rực rỡ
+        Color(0xFFF0610E), // Cam đậm rực rỡ
+      ],
+    ).createShader(bounds);
   }
 }

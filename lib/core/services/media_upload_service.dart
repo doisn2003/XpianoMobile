@@ -44,10 +44,10 @@ class MediaUploadService {
     try {
       // Bước 1: Nén file nếu cần
       if (uploadType == 'post_video' || uploadType == 'course_video' || uploadType == 'piano_video') {
-        onStatusChange?.call('Đang nén video...');
+        onStatusChange?.call('Đang tải video...');
         compressedFile = await _compressVideo(file);
-      } else if (uploadType == 'post_image' || uploadType == 'course_image' || uploadType == 'piano_image' || uploadType == 'user_avatar') {
-        onStatusChange?.call('Đang nén ảnh...');
+      } else if (uploadType == 'post_image' || uploadType == 'course_image' || uploadType == 'piano_image' || uploadType == 'user_avatar' || uploadType == 'avatar') {
+        onStatusChange?.call('Đang tải ảnh...'); 
         compressedFile = await _compressImage(file);
       }
 

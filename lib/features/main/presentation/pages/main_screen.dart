@@ -11,7 +11,10 @@ import '../../../feed/presentation/pages/create_post_screen.dart';
 import '../../../feed/presentation/pages/feed_screen.dart';
 import '../../../explore/presentation/pages/explore_screen.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../profile/presentation/bloc/wallet_bloc.dart';
+import '../../../profile/presentation/bloc/wallet_event.dart';
 import '../../../profile/presentation/pages/profile_screen.dart';
+import '../../../../injection_container.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -52,7 +55,7 @@ class _MainScreenState extends State<MainScreen> {
     PianoListScreen(key: ValueKey('piano_$_refreshCounter')),
     const SizedBox(), // Nút cộng — không render
     ExploreScreen(key: ValueKey('explore_$_refreshCounter')),
-    const ProfileScreen(),
+    ProfileScreen(key: ValueKey('profile_$_refreshCounter')),
   ];
 
   void _onItemTapped(int index) {
@@ -63,6 +66,10 @@ class _MainScreenState extends State<MainScreen> {
       setState(() {
         _refreshCounter++;
       });
+      // Explicitly refresh profile data if it's the profile tab
+      if (index == 4) {
+        sl<WalletBloc>().add(LoadWallet());
+      }
     } else {
       setState(() => _currentIndex = index);
     }

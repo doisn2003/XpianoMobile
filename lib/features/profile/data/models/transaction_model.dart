@@ -13,9 +13,9 @@ class TransactionModel extends Transaction {
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
-      id: json['id'] as int,
-      type: json['type'] as String,
-      amount: (json['amount'] as num).toDouble(),
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      type: json['type'] as String? ?? 'UNKNOWN',
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       referenceType: json['reference_type'] as String?,
       referenceId: json['reference_id']?.toString(),
       note: json['note'] as String?,

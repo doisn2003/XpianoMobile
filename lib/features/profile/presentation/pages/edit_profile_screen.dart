@@ -29,7 +29,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _occupationController;
   late TextEditingController _schoolController;
   late TextEditingController _locationController;
+  late TextEditingController _phoneController;
   late DateTime? _selectedDate;
+  File? _avatarFile;
   
   final List<String> _hobbies = [];
   final List<String> _instruments = [];
@@ -48,6 +50,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _occupationController = TextEditingController(text: widget.user.occupation);
     _schoolController = TextEditingController(text: widget.user.school);
     _locationController = TextEditingController(text: widget.user.location);
+    _phoneController = TextEditingController(text: widget.user.phone);
     
     if (widget.user.dateOfBirth != null) {
       try {
@@ -78,6 +81,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _locationController.dispose();
     _hobbyInputController.dispose();
     _instrumentInputController.dispose();
+    _phoneController.dispose();
     _bioFocusNode.dispose();
     super.dispose();
   }
@@ -87,9 +91,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     
     if (pickedFile != null) {
-      if (context.mounted) {
-        context.read<EditProfileBloc>().add(EditProfileAvatarChanged(File(pickedFile.path)));
-      }
+      setState(() {
+        _avatarFile = File(pickedFile.path);
+      });
     }
   }
 
@@ -127,12 +131,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'occupation': _occupationController.text.trim(),
         'school': _schoolController.text.trim(),
         'location': _locationController.text.trim(),
+        'phone': _phoneController.text.trim(),
         'date_of_birth': _selectedDate?.toIso8601String().split('T')[0],
         'hobbies': _hobbies,
         'instruments': _instruments,
       };
       
-      context.read<EditProfileBloc>().add(EditProfileSubmit(profileData));
+      context.read<EditProfileBloc>().add(EditProfileSubmit(profileData, avatarFile: _avatarFile));
     }
   }
 
@@ -192,8 +197,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 return CircleAvatar(
                                   radius: 50,
                                   backgroundColor: AppTheme.primaryGold.withOpacity(0.1),
-                                  backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-                                  child: avatarUrl == null 
+                                  backgroundImage: _avatarFile != null 
+                                    ? FileImage(_avatarFile!) as ImageProvider
+                                    : (avatarUrl != null ? NetworkImage(avatarUrl) : null),
+                                  child: (_avatarFile == null && avatarUrl == null)
                                     ? Text(widget.user.fullName[0].toUpperCase(), style: const TextStyle(fontSize: 32, color: AppTheme.primaryGoldDark))
                                     : null,
                                 );
@@ -264,6 +271,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) return 'Vui lòng nhập họ tên';
                           if (value.length > 50) return 'Tên quá dài (tối đa 50 ký tự)';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      
+                      // --- Phone Number ---
+                      _buildSectionTitle('Số điện thoại'),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _phoneController,
+                        style: const TextStyle(fontSize: 14),
+                        keyboardType: TextInputType.phone,
+                        decoration: _buildInputDecoration('Nhập số điện thoại', Icons.phone),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Vui lòng nhập số điện thoại';
+                          // Basic regex for VN phone number
+                          if (!RegExp(r'^(0[3|5|7|8|9])+([0-9]{8})\b$').hasMatch(value.trim())) {
+                            return 'Số điện thoại không hợp lệ';
+                          }
                           return null;
                         },
                       ),

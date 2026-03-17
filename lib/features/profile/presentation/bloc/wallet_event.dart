@@ -9,6 +9,8 @@ abstract class WalletEvent extends Equatable {
 
 class LoadWallet extends WalletEvent {}
 
+class ToggleBalanceVisibility extends WalletEvent {}
+
 class RequestWithdrawal extends WalletEvent {
   final double amount;
   final Map<String, dynamic> bankInfo;

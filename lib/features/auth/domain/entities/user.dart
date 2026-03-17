@@ -7,6 +7,7 @@ class User extends Equatable {
   final String fullName;
   final String role; // 'user' hoặc 'teacher'
   final String? avatar;
+  final String? phone;
   final bool isEmailVerified;
   
   // Profile Intro Fields
@@ -25,6 +26,7 @@ class User extends Equatable {
     required this.fullName,
     required this.role,
     this.avatar,
+    this.phone,
     this.isEmailVerified = false,
     this.dateOfBirth,
     this.occupation,
@@ -45,6 +47,7 @@ class User extends Equatable {
         fullName,
         role,
         avatar,
+        phone,
         isEmailVerified,
         dateOfBirth,
         occupation,

@@ -20,8 +20,9 @@ class EditProfileAvatarChanged extends EditProfileEvent {
 
 class EditProfileSubmit extends EditProfileEvent {
   final Map<String, dynamic> profileData;
-  const EditProfileSubmit(this.profileData);
+  final File? avatarFile;
+  const EditProfileSubmit(this.profileData, {this.avatarFile});
 
   @override
-  List<Object?> get props => [profileData];
+  List<Object?> get props => [profileData, avatarFile];
 }

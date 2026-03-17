@@ -1,0 +1,31 @@
+[
+  {
+    "id": "v1",
+    "code": "XPIANO_NEWBIE",
+    "title": "Giảm 50% khóa học đầu tiên",
+    "expiryDate": "2026-12-31",
+    "status": "AVAILABLE"
+  },
+  {
+    "id": "v2",
+    "code": "GIFT_10K",
+    "title": "Voucher trị giá 10,000 ₫",
+    "expiryDate": "2026-06-30",
+    "status": "AVAILABLE"
+  },
+  {
+    "id": "v3",
+    "code": "XPIANO_MEMBER",
+    "title": "Giảm 500k cho đàn piano thuê 1 năm",
+    "expiryDate": "2026-12-31",
+    "status": "AVAILABLE"
+  },
+  {
+    "id": "v4",
+    "code": "USED_VOUCHER",
+    "title": "Giảm 20k cho khóa học Master",
+    "expiryDate": "2026-03-01",
+    "status": "USED"
+  }
+  
+]

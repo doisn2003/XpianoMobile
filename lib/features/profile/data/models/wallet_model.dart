@@ -16,12 +16,12 @@ class WalletModel extends Wallet {
 
   factory WalletModel.fromJson(Map<String, dynamic> json) {
     return WalletModel(
-      id: json['id'] as int,
-      availableBalance: (json['available_balance'] as num).toDouble(),
-      lockedBalance: (json['locked_balance'] as num).toDouble(),
-      totalBalance: (json['total_balance'] as num).toDouble(),
-      transactions: [], // handled separately if needed, or parse here
-      withdrawalRequests: [], // handled separately
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      availableBalance: (json['available_balance'] as num?)?.toDouble() ?? 0.0,
+      lockedBalance: (json['locked_balance'] as num?)?.toDouble() ?? 0.0,
+      totalBalance: (json['total_balance'] as num?)?.toDouble() ?? 0.0,
+      transactions: (json['transactions'] as List?)?.map((e) => TransactionModel.fromJson(e as Map<String, dynamic>)).toList() ?? [],
+      withdrawalRequests: (json['withdrawal_requests'] as List?)?.map((e) => WithdrawalRequestModel.fromJson(e as Map<String, dynamic>)).toList() ?? [],
       createdAt: json['created_at'] as String?,
       updatedAt: json['updated_at'] as String?,
     );
@@ -40,8 +40,8 @@ class WithdrawalRequestModel extends WithdrawalRequest {
 
   factory WithdrawalRequestModel.fromJson(Map<String, dynamic> json) {
     return WithdrawalRequestModel(
-      id: json['id'] as int,
-      amount: (json['amount'] as num).toDouble(),
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       bankInfo: json['bank_info'] as Map<String, dynamic>? ?? {},
       status: json['status'] as String,
       createdAt: json['created_at'] as String?,

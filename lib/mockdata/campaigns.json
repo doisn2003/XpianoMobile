@@ -1,0 +1,32 @@
+[
+  {
+    "id": "c1",
+    "title": "Nghệ sĩ Piano tài năng",
+    "description": "Chia sẻ video chơi nhạc của bạn lên mạng xã hội và nhận 1k tim để nhận thưởng.",
+    "reward": "50,000 ₫"
+  },
+  {
+    "id": "c2",
+    "title": "Lời mời bạn bè",
+    "description": "Mời một người bạn mới đăng ký và hoàn thành khóa học đầu tiên.",
+    "reward": "20,000 ₫"
+  },
+  {
+    "id": "c3",
+    "title": "Đánh giá khóa học",
+    "description": "Viết đánh giá chi tiết cho khóa học bạn đã hoàn thành.",
+    "reward": "5,000 ₫"
+  },
+  {
+    "id": "c4",
+    "title": "Đánh giá ứng dụng",
+    "description": "Viết đánh giá ứng dụng trên CH Play hoặc App Store.",
+    "reward": "5,000 ₫"
+  },
+  {
+    "id": "c5",
+    "title": "Đăng ký thành viên",
+    "description": "Đăng ký thành viên và nhận 100k",
+    "reward": "100,000 ₫"
+  }
+]

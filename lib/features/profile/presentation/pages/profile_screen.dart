@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/widgets/user_avatar_widget.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_theme.dart';
@@ -12,6 +13,11 @@ import 'favorites_screen.dart';
 import 'my_courses_screen.dart';
 import 'order_history_screen.dart';
 import 'settings_screen.dart';
+import 'package:intl/intl.dart';
+import '../../../../injection_container.dart';
+import '../bloc/wallet_bloc.dart';
+import '../bloc/wallet_event.dart';
+import '../bloc/wallet_state.dart';
 import 'wallet_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -32,7 +38,7 @@ class ProfileScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isTeacher ? 'Hồ sơ giáo viên' : 'Hồ sơ'),
+        title: Text('Hồ sơ cá nhân'),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -45,113 +51,117 @@ class ProfileScreen extends StatelessWidget {
           )
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          // User card
-          Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: AppTheme.dividerColor, width: 1.0),
-            ),
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: AppTheme.primaryGold.withOpacity(0.15),
-                child: Text(
-                  user.fullName.isNotEmpty ? user.fullName[0].toUpperCase() : '?',
-                  style: const TextStyle(color: AppTheme.primaryGoldDark, fontWeight: FontWeight.bold, fontSize: 20),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          context.read<WalletBloc>().add(LoadWallet());
+        },
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            // User card
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: AppTheme.dividerColor, width: 1.0),
+              ),
+              child: ListTile(
+                leading: UserAvatarWidget(
+                  fullName: user.fullName,
+                  avatarUrl: user.avatar,
+                  role: isTeacher ? 'teacher' : 'user',
+                  radius: 24,
+                ),
+                title: Text(user.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(isTeacher ? 'Giáo viên' : 'Học viên', style: const TextStyle(color: AppTheme.textSecondary)),
+                trailing: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => EditProfileScreen(user: user)),
+                    );
+                  },
+                  icon: const Icon(Icons.edit, size: 16),
+                  label: const Text('Chỉnh sửa'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
                 ),
               ),
-              title: Text(user.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(isTeacher ? 'Giáo viên' : 'Học viên', style: const TextStyle(color: AppTheme.textSecondary)),
-              trailing: OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => EditProfileScreen(user: user)),
-                  );
-                },
-                icon: const Icon(Icons.edit, size: 16),
-                label: const Text('Chỉnh sửa'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                ),
+            ),
+            const SizedBox(height: 20),
+  
+            // Wallet Card widget call
+            const _WalletSummaryCard(),
+  
+            const SizedBox(height: 20),
+  
+            // Menu List
+            _buildMenuItem(
+              context,
+              icon: Icons.school,
+              title: 'Khóa học của tôi',
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const MyCoursesScreen()));
+              },
+            ),
+            _buildMenuItem(
+              context,
+              icon: Icons.favorite_border,
+              title: 'Danh sách đàn yêu thích',
+              //iconColor: Colors.redAccent,
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesScreen()));
+              },
+            ),
+            _buildMenuItem(
+              context,
+              icon: Icons.history,
+              title: 'Lịch sử đơn hàng',
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderHistoryScreen()));
+              },
+            ),
+            _buildMenuItem(
+              context,
+              icon: Icons.piano,
+              title: 'Đàn piano đang thuê',
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ActiveRentalsScreen()));
+              },
+            ),
+            _buildMenuItem(
+              context,
+              icon: Icons.monetization_on,
+              title: 'Affiliate',
+              //iconColor: Colors.blueAccent,
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const AffiliateScreen()));
+              },
+            ),
+  
+            if (isTeacher) ...[
+              const Divider(height: 40, thickness: 1),
+              const Text('Khu vực Giáo viên', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primaryGoldDark)),
+              const SizedBox(height: 10),
+              ListTile(
+                leading: const Icon(Icons.upload_file, color: AppTheme.primaryGold),
+                title: const Text('Cập nhật Chứng chỉ'),
+                onTap: () {},
               ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Wallet Card widget call
-          const _WalletSummaryCard(),
-
-          const SizedBox(height: 20),
-
-          // Menu List
-          _buildMenuItem(
-            context,
-            icon: Icons.shopping_bag,
-            title: 'Khóa học của tôi',
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const MyCoursesScreen()));
-            },
-          ),
-          _buildMenuItem(
-            context,
-            icon: Icons.favorite,
-            title: 'Danh sách đàn yêu thích',
-            iconColor: Colors.redAccent,
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesScreen()));
-            },
-          ),
-          _buildMenuItem(
-            context,
-            icon: Icons.history,
-            title: 'Lịch sử đơn hàng',
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const OrderHistoryScreen()));
-            },
-          ),
-          _buildMenuItem(
-            context,
-            icon: Icons.piano,
-            title: 'Đàn piano đang thuê',
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ActiveRentalsScreen()));
-            },
-          ),
-          _buildMenuItem(
-            context,
-            icon: Icons.share,
-            title: 'Affiliate',
-            iconColor: Colors.blueAccent,
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const AffiliateScreen()));
-            },
-          ),
-
-          if (isTeacher) ...[
-            const Divider(height: 40, thickness: 1),
-            const Text('Khu vực Giáo viên', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.primaryGoldDark)),
-            const SizedBox(height: 10),
-            ListTile(
-              leading: const Icon(Icons.upload_file, color: AppTheme.primaryGold),
-              title: const Text('Cập nhật Chứng chỉ'),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: const Icon(Icons.create, color: AppTheme.primaryGold),
-              title: const Text('Quản lý khóa học (CMS)'),
-              onTap: () {},
-            ),
-            ListTile(
-              leading: const Icon(Icons.bar_chart, color: AppTheme.primaryGold),
-              title: const Text('Thống kê thu nhập'),
-              onTap: () {},
-            ),
+              ListTile(
+                leading: const Icon(Icons.create, color: AppTheme.primaryGold),
+                title: const Text('Quản lý khóa học (CMS)'),
+                onTap: () {},
+              ),
+              ListTile(
+                leading: const Icon(Icons.bar_chart, color: AppTheme.primaryGold),
+                title: const Text('Thống kê thu nhập'),
+                onTap: () {},
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -227,45 +237,80 @@ class _WalletSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      color: AppTheme.primaryGoldLight.withOpacity(0.3),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppTheme.primaryGold, width: 1.0),
-      ),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen()));
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryGold,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.account_balance_wallet, color: Colors.white),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return BlocProvider.value(
+      value: sl<WalletBloc>(),
+      child: BlocBuilder<WalletBloc, WalletState>(
+        builder: (context, state) {
+          if (state is WalletInitial) {
+            context.read<WalletBloc>().add(LoadWallet());
+          }
+
+          final bool isVisible = state.isBalanceVisible;
+          final String balanceText = state is WalletLoaded
+              ? (isVisible
+                  ? NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ', decimalDigits: 0).format(state.wallet.availableBalance)
+                  : '*** ***')
+              : (state is WalletLoading ? 'Đang tải...' : '*** ***');
+
+          return Card(
+            elevation: 0,
+            color: AppTheme.primaryGoldLight.withOpacity(0.3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: AppTheme.primaryGold, width: 1.0),
+            ),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen()));
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
                   children: [
-                    Text('Ví của tôi', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    const Text('Xem số dư và quản lý', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        color: AppTheme.primaryGold,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.account_balance_wallet, color: Colors.white),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Text('Ví của tôi', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () {
+                                  context.read<WalletBloc>().add(ToggleBalanceVisibility());
+                                },
+                                child: Icon(
+                                  isVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                  size: 18,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          // Chỗ này hiển thị số dư:
+                          Text('Số dư: $balanceText', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        ],
+                      ),
+                    ),
+                    const Text('Quản lý ví', style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
+                    const Icon(Icons.chevron_right, color: AppTheme.primaryGold),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppTheme.primaryGold),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

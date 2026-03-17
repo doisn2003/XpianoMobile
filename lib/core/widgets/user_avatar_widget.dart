@@ -52,7 +52,7 @@ class UserAvatarWidget extends StatelessWidget {
               child: avatarUrl == null || avatarUrl!.isEmpty
                   ? Text(
                       fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
-                      style: GoogleFonts.outfit(
+                      style: GoogleFonts.nunito(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: radius * 0.8,
@@ -73,7 +73,7 @@ class UserAvatarWidget extends StatelessWidget {
               ),
               child: Text(
                 'GV',
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   color: Colors.white,
                   fontSize: 9,
                   fontWeight: FontWeight.bold,

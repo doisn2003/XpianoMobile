@@ -297,7 +297,7 @@ class _WalletViewState extends State<_WalletView> {
             : null,
         trailing: Text(
           '$prefix${format.format(tx.amount)}',
-          style: TextStyle(color: amountColor, fontWeight: FontWeight.bold, fontSize: 15),
+          style: TextStyle(color: amountColor, fontWeight: FontWeight.bold, fontSize: 12),
         ),
       ),
     );

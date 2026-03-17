@@ -143,7 +143,7 @@ class _CommentSheetBodyState extends State<_CommentSheetBody> {
                       padding: const EdgeInsets.all(24),
                       child: Text(
                         'Không thể tải bình luận',
-                        style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 14),
+                        style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 14),
                       ),
                     ),
                   );
@@ -157,9 +157,9 @@ class _CommentSheetBodyState extends State<_CommentSheetBody> {
                         children: [
                           Icon(Icons.chat_bubble_outline, size: 40, color: AppTheme.textSecondary.withValues(alpha: 80)),
                           const SizedBox(height: 8),
-                          Text('Chưa có bình luận', style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 14)),
+                          Text('Chưa có bình luận', style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 14)),
                           const SizedBox(height: 4),
-                          Text('Hãy là người đầu tiên bình luận!', style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 12)),
+                          Text('Hãy là người đầu tiên bình luận!', style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12)),
                         ],
                       ),
                     );
@@ -213,10 +213,10 @@ class _CommentSheetBodyState extends State<_CommentSheetBody> {
                     ),
                     child: TextField(
                       controller: _textController,
-                      style: GoogleFonts.outfit(fontSize: 14, color: AppTheme.textPrimary),
+                      style: GoogleFonts.nunito(fontSize: 14, color: AppTheme.textPrimary),
                       decoration: InputDecoration(
                         hintText: 'Viết bình luận...',
-                        hintStyle: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 14),
+                        hintStyle: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 14),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(vertical: 10),
                       ),
@@ -272,7 +272,7 @@ class _CommentSheetBodyState extends State<_CommentSheetBody> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Text(
             '${widget.commentsCount} bình luận',
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
               fontSize: 15,
               fontWeight: FontWeight.w600,
               color: AppTheme.textPrimary,
@@ -356,7 +356,7 @@ class _CommentTile extends StatelessWidget {
                       },
                       child: Text(
                         comment.author?.fullName ?? 'Ẩn danh',
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.nunito(
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                           color: AppTheme.textPrimary,
@@ -373,21 +373,21 @@ class _CommentTile extends StatelessWidget {
                         ),
                         child: Text(
                           'GV',
-                          style: GoogleFonts.outfit(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                          style: GoogleFonts.nunito(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
                     const Spacer(),
                     Text(
                       _timeAgo(comment.createdAt),
-                      style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 11),
+                      style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 11),
                     ),
                   ],
                 ),
                 const SizedBox(height: 3),
                 Text(
                   comment.content,
-                  style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textPrimary),
+                  style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary),
                 ),
 
                 // Delete button for own comments
@@ -400,7 +400,7 @@ class _CommentTile extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           'Xóa',
-                          style: GoogleFonts.outfit(color: Colors.red.shade400, fontSize: 11),
+                          style: GoogleFonts.nunito(color: Colors.red.shade400, fontSize: 11),
                         ),
                       ),
                     ),
@@ -417,19 +417,19 @@ class _CommentTile extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('Xóa bình luận?', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
-        content: Text('Bạn có chắc muốn xóa bình luận này?', style: GoogleFonts.outfit()),
+        title: Text('Xóa bình luận?', style: GoogleFonts.nunito(fontWeight: FontWeight.w600)),
+        content: Text('Bạn có chắc muốn xóa bình luận này?', style: GoogleFonts.nunito()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Hủy', style: GoogleFonts.outfit(color: AppTheme.textSecondary)),
+            child: Text('Hủy', style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               onDelete(comment.id);
             },
-            child: Text('Xóa', style: GoogleFonts.outfit(color: Colors.red)),
+            child: Text('Xóa', style: GoogleFonts.nunito(color: Colors.red)),
           ),
         ],
       ),

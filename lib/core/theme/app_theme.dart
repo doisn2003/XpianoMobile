@@ -45,21 +45,21 @@ class AppTheme {
         onSurface: textPrimary,
       ),
       
-      // Google Font: Outfit hoặc Nunito có nét mềm mại, hiện đại và sang trọng như ảnh mẫu
-      textTheme: GoogleFonts.outfitTextTheme().copyWith(
-        displayLarge: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.bold),
-        displayMedium: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.bold),
-        displaySmall: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.bold),
-        headlineLarge: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.bold),
-        headlineMedium: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.bold),
-        headlineSmall: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.bold),
-        titleLarge: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.w700),
-        titleMedium: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.w600),
-        titleSmall: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.w500),
-        bodyLarge: GoogleFonts.outfit(color: textPrimary),
-        bodyMedium: GoogleFonts.outfit(color: textPrimary),
-        bodySmall: GoogleFonts.outfit(color: textSecondary),
-        labelLarge: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.w600),
+      // Google Font: Nunito có nét mềm mại, hỗ trợ tiếng Việt tốt
+      textTheme: GoogleFonts.nunitoTextTheme().copyWith(
+        displayLarge: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.bold),
+        displayMedium: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.bold),
+        displaySmall: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.bold),
+        headlineLarge: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.bold),
+        headlineMedium: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.bold),
+        headlineSmall: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.bold),
+        titleLarge: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.w700),
+        titleMedium: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.w600),
+        titleSmall: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.w500),
+        bodyLarge: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.w500),
+        bodyMedium: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.w500),
+        bodySmall: GoogleFonts.nunito(color: textSecondary, fontWeight: FontWeight.w500),
+        labelLarge: GoogleFonts.nunito(color: textPrimary, fontWeight: FontWeight.w600),
       ),
       
       appBarTheme: AppBarTheme(
@@ -73,7 +73,7 @@ class AppTheme {
           statusBarIconBrightness: Brightness.dark,
           statusBarBrightness: Brightness.light,
         ),
-        titleTextStyle: GoogleFonts.outfit(
+        titleTextStyle: GoogleFonts.nunito(
           color: textPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -109,7 +109,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(24),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          textStyle: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 14),
+          textStyle: GoogleFonts.nunito(fontWeight: FontWeight.w600, fontSize: 14),
         ),
       ),
       
@@ -121,7 +121,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(24),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          textStyle: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 14, color: textPrimary),
+          textStyle: GoogleFonts.nunito(fontWeight: FontWeight.w600, fontSize: 14, color: textPrimary),
         ),
       ),
       

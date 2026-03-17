@@ -120,7 +120,7 @@ class _FeedBodyState extends State<_FeedBody> {
                 children: [
                   Icon(Icons.wifi_off, color: AppTheme.textSecondary.withValues(alpha: 128), size: 64),
                   const SizedBox(height: 16),
-                  Text('Không thể tải feed', style: GoogleFonts.outfit(
+                  Text('Không thể tải feed', style: GoogleFonts.nunito(
                     fontSize: 18, fontWeight: FontWeight.w600, color: AppTheme.textPrimary,
                   )),
                   const SizedBox(height: 8),
@@ -128,7 +128,7 @@ class _FeedBodyState extends State<_FeedBody> {
                     padding: const EdgeInsets.symmetric(horizontal: 32),
                     child: Text(
                       state.message,
-                      style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 13),
+                      style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 13),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -166,11 +166,11 @@ class _FeedBodyState extends State<_FeedBody> {
                   children: [
                     Icon(Icons.music_note_outlined, size: 80, color: AppTheme.primaryGold.withValues(alpha: 77)),
                     const SizedBox(height: 16),
-                    Text('Chưa có bài viết nào', style: GoogleFonts.outfit(
+                    Text('Chưa có bài viết nào', style: GoogleFonts.nunito(
                       fontSize: 18, fontWeight: FontWeight.w600, color: AppTheme.textPrimary,
                     )),
                     const SizedBox(height: 8),
-                    Text('Hãy là người đầu tiên chia sẻ!', style: GoogleFonts.outfit(
+                    Text('Hãy là người đầu tiên chia sẻ!', style: GoogleFonts.nunito(
                       color: AppTheme.textSecondary, fontSize: 14,
                     )),
                   ],
@@ -351,7 +351,7 @@ class _VideoContentState extends State<_VideoContent> {
             children: [
               Icon(Icons.error_outline, color: AppTheme.textSecondary.withValues(alpha: 128), size: 48),
               const SizedBox(height: 8),
-              Text('Không thể phát video', style: GoogleFonts.outfit(color: AppTheme.textSecondary)),
+              Text('Không thể phát video', style: GoogleFonts.nunito(color: AppTheme.textSecondary)),
             ],
           ),
         ),
@@ -518,7 +518,7 @@ class _TextContent extends StatelessWidget {
             if (post.title != null && post.title!.isNotEmpty) ...[
               Text(
                 post.title!,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   color: AppTheme.textPrimary,
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
@@ -530,7 +530,7 @@ class _TextContent extends StatelessWidget {
             if (post.content != null && post.content!.isNotEmpty)
               Text(
                 post.content!,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   color: AppTheme.textPrimary,
                   fontSize: 17,
                   height: 1.6,

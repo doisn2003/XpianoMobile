@@ -170,7 +170,7 @@ class _ActionButton extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             _formatCount(count),
-            style: GoogleFonts.outfit(color: textColor, fontSize: 12, fontWeight: FontWeight.w500),
+            style: GoogleFonts.nunito(color: textColor, fontSize: 12, fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -229,7 +229,7 @@ class _PostInfo extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   '${post.author!.fullName}',
-                  style: GoogleFonts.outfit(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: GoogleFonts.nunito(color: textColor, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 if (post.author!.role == 'teacher') ...[
                   const SizedBox(width: 6),
@@ -241,7 +241,7 @@ class _PostInfo extends StatelessWidget {
                     ),
                     child: Text(
                       'GV',
-                      style: GoogleFonts.outfit(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.nunito(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -256,7 +256,7 @@ class _PostInfo extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 4),
             child: Text(
               post.title!,
-              style: GoogleFonts.outfit(color: textColor, fontWeight: FontWeight.w600, fontSize: 15),
+              style: GoogleFonts.nunito(color: textColor, fontWeight: FontWeight.w600, fontSize: 15),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -268,7 +268,7 @@ class _PostInfo extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 5),
             child: Text(
               post.content!,
-              style: GoogleFonts.outfit(color: subTextColor, fontSize: 13),
+              style: GoogleFonts.nunito(color: subTextColor, fontSize: 13),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -283,7 +283,7 @@ class _PostInfo extends StatelessWidget {
               runSpacing: 2,
               children: post.hashtags.take(5).map((tag) => Text(
                 '#$tag',
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   color: AppTheme.primaryGold,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -302,7 +302,7 @@ class _PostInfo extends StatelessWidget {
               Flexible(
                 child: Text(
                   post.location!,
-                  style: GoogleFonts.outfit(color: subTextColor, fontSize: 12),
+                  style: GoogleFonts.nunito(color: subTextColor, fontSize: 12),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -342,7 +342,7 @@ class _CtaButton extends StatelessWidget {
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          textStyle: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.nunito(fontSize: 13, fontWeight: FontWeight.w600),
         ),
       ),
     );

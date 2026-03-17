@@ -124,9 +124,9 @@ class _UserProfileBody extends StatelessWidget {
               children: [
                 Icon(Icons.error_outline, size: 48, color: AppTheme.textSecondary.withValues(alpha: 128)),
                 const SizedBox(height: 12),
-                Text('Không thể tải hồ sơ', style: GoogleFonts.outfit(fontSize: 16, color: AppTheme.textPrimary)),
+                Text('Không thể tải hồ sơ', style: GoogleFonts.nunito(fontSize: 16, color: AppTheme.textPrimary)),
                 const SizedBox(height: 4),
-                Text(state.message, style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textSecondary)),
+                Text(state.message, style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textSecondary)),
               ],
             ),
           );
@@ -216,7 +216,7 @@ class _ProfileContentState extends State<_ProfileContent> with SingleTickerProvi
               // Name
               Text(
                 fullName,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: AppTheme.textPrimary,
@@ -256,7 +256,7 @@ class _ProfileContentState extends State<_ProfileContent> with SingleTickerProvi
                 labelColor: AppTheme.primaryGold,
                 unselectedLabelColor: AppTheme.textSecondary,
                 indicatorColor: AppTheme.primaryGold,
-                labelStyle: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 14),
+                labelStyle: GoogleFonts.nunito(fontWeight: FontWeight.w600, fontSize: 14),
                 tabs: const [
                   Tab(text: 'Thông tin'),
                   Tab(text: 'Bài đăng'),
@@ -306,7 +306,7 @@ class _StatColumn extends StatelessWidget {
           children: [
             Text(
               _formatCount(count),
-              style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+              style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
             ),
             if (onFollowTap != null) ...[
               const SizedBox(width: 4),
@@ -321,7 +321,7 @@ class _StatColumn extends StatelessWidget {
             ],
           ],
         ),
-        Text(label, style: GoogleFonts.outfit(fontSize: 11, color: AppTheme.textSecondary)),
+        Text(label, style: GoogleFonts.nunito(fontSize: 11, color: AppTheme.textSecondary)),
       ],
     );
   }
@@ -376,7 +376,7 @@ class _InfoTab extends StatelessWidget {
             Icon(Icons.info_outline, size: 48, color: AppTheme.textSecondary.withValues(alpha: 0.3)),
             const SizedBox(height: 12),
             Text('Chưa có thông tin giới thiệu', 
-              style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 14)),
+              style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 14)),
           ],
         ),
       );
@@ -388,7 +388,7 @@ class _InfoTab extends StatelessWidget {
         if (bio != null && bio.isNotEmpty) ...[
           Text(
             bio,
-            style: GoogleFonts.outfit(fontSize: 15, color: AppTheme.textPrimary),
+            style: GoogleFonts.nunito(fontSize: 15, color: AppTheme.textPrimary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -422,7 +422,7 @@ class _InfoTab extends StatelessWidget {
 
         // Hobbies
         if (hobbies.isNotEmpty) ...[
-          Text('Sở thích', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+          Text('Sở thích', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
@@ -434,7 +434,7 @@ class _InfoTab extends StatelessWidget {
 
         // Instruments
         if (instruments.isNotEmpty) ...[
-          Text('Nhạc cụ', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
+          Text('Nhạc cụ', style: GoogleFonts.nunito(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
@@ -455,9 +455,9 @@ class _InfoTab extends StatelessWidget {
         children: [
           Icon(icon, color: AppTheme.primaryGold, size: 20),
           const SizedBox(width: 12),
-          Text('$label: ', style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 14)),
+          Text('$label: ', style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 14)),
           Expanded(
-            child: Text(value, style: GoogleFonts.outfit(color: AppTheme.textPrimary, fontWeight: FontWeight.w500, fontSize: 14)),
+            child: Text(value, style: GoogleFonts.nunito(color: AppTheme.textPrimary, fontWeight: FontWeight.w500, fontSize: 14)),
           ),
         ],
       ),
@@ -476,7 +476,7 @@ class _InfoTab extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: AppTheme.primaryGoldDark),
           const SizedBox(width: 6),
-          Text(text, style: GoogleFonts.outfit(fontSize: 13, color: AppTheme.textPrimary, fontWeight: FontWeight.w500)),
+          Text(text, style: GoogleFonts.nunito(fontSize: 13, color: AppTheme.textPrimary, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -505,7 +505,7 @@ class _PostsTab extends StatelessWidget {
           children: [
             Icon(Icons.article_outlined, size: 48, color: AppTheme.textSecondary.withValues(alpha: 100)),
             const SizedBox(height: 8),
-            Text('Chưa có bài viết nào', style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 14)),
+            Text('Chưa có bài viết nào', style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 14)),
           ],
         ),
       );
@@ -558,7 +558,7 @@ class _PostCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 6),
               child: Text(
                 post.title!,
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 15, color: AppTheme.textPrimary),
+                style: GoogleFonts.nunito(fontWeight: FontWeight.w600, fontSize: 15, color: AppTheme.textPrimary),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -568,7 +568,7 @@ class _PostCard extends StatelessWidget {
           if (post.content != null && post.content!.isNotEmpty)
             Text(
               post.content!,
-              style: GoogleFonts.outfit(color: AppTheme.textPrimary, fontSize: 14),
+              style: GoogleFonts.nunito(color: AppTheme.textPrimary, fontSize: 14),
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
             ),
@@ -597,7 +597,7 @@ class _PostCard extends StatelessWidget {
                 spacing: 6,
                 children: post.hashtags.take(4).map((tag) => Text(
                   '#$tag',
-                  style: GoogleFonts.outfit(color: AppTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.w500),
+                  style: GoogleFonts.nunito(color: AppTheme.primaryGold, fontSize: 12, fontWeight: FontWeight.w500),
                 )).toList(),
               ),
             ),
@@ -609,19 +609,19 @@ class _PostCard extends StatelessWidget {
             children: [
               Icon(Icons.favorite, color: Colors.red.shade300, size: 16),
               const SizedBox(width: 4),
-              Text('${post.likesCount}', style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 12)),
+              Text('${post.likesCount}', style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12)),
               const SizedBox(width: 14),
               Icon(Icons.chat_bubble_outline, color: AppTheme.textSecondary, size: 16),
               const SizedBox(width: 4),
-              Text('${post.commentsCount}', style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 12)),
+              Text('${post.commentsCount}', style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12)),
               const SizedBox(width: 14),
               Icon(Icons.visibility_outlined, color: AppTheme.textSecondary, size: 16),
               const SizedBox(width: 4),
-              Text('${post.viewsCount}', style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 12)),
+              Text('${post.viewsCount}', style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 12)),
               const Spacer(),
               Text(
                 _timeAgo(post.createdAt),
-                style: GoogleFonts.outfit(color: AppTheme.textSecondary, fontSize: 11),
+                style: GoogleFonts.nunito(color: AppTheme.textSecondary, fontSize: 11),
               ),
             ],
           ),

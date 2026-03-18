@@ -174,7 +174,7 @@ class ScheduleTab extends StatelessWidget {
     );
   }
 
-  Widget _buildDayGrid(
+    Widget _buildDayGrid(
     BuildContext context, {
     required int daysInMonth,
     required int startWeekday,
@@ -183,47 +183,61 @@ class ScheduleTab extends StatelessWidget {
     required int month,
   }) {
     final today = DateTime.now();
-    final cells = <Widget>[];
+    final List<Widget> allCells = [];
 
-    // Ô trống đầu tháng
+    // 1. Tạo danh sách tất cả các ô (bao gồm ô trống)
     for (int i = 0; i < startWeekday; i++) {
-      cells.add(const SizedBox.shrink());
+      allCells.add(const Expanded(child: SizedBox.shrink()));
     }
-
-    // Các ngày trong tháng
     for (int day = 1; day <= daysInMonth; day++) {
       final isSelected = state.selectedDate.year == year &&
           state.selectedDate.month == month &&
           state.selectedDate.day == day;
-
       final isToday = today.year == year && today.month == month && today.day == day;
-
       final hasSession = sessionDays.contains(day);
 
-      cells.add(
-        GestureDetector(
-          onTap: () {
-            context.read<MyCoursesBloc>().add(SelectDate(DateTime(year, month, day)));
-          },
-          child: _DayCell(
-            day: day,
-            isSelected: isSelected,
-            isToday: isToday,
-            hasSession: hasSession,
+      allCells.add(
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              context.read<MyCoursesBloc>().add(SelectDate(DateTime(year, month, day)));
+            },
+            child: _DayCell(
+              day: day,
+              isSelected: isSelected,
+              isToday: isToday,
+              hasSession: hasSession,
+            ),
           ),
         ),
       );
     }
 
-    // Sắp xếp vào grid 7 cột
-    return GridView.count(
-      crossAxisCount: 7,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1,
-      children: cells,
-    );
+    // 2. Chia các ô thành từng hàng (mỗi hàng 7 ô)
+    final List<Widget> rows = [];
+    for (int i = 0; i < allCells.length; i += 7) {
+      final rowCells = allCells.sublist(i, (i + 7 > allCells.length) ? allCells.length : i + 7);
+      
+      // Nếu hàng cuối không đủ 7 ô, bù thêm ô trống cho cân đối
+      while (rowCells.length < 7) {
+        rowCells.add(const Expanded(child: SizedBox.shrink()));
+      }
+
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4), // Khoảng cách giữa các hàng
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: rowCells,
+          ),
+        ),
+      );
+    }
+
+    // 3. Trả về Column chứa các hàng (không bao giờ có khoảng trống thừa)
+    return Column(children: rows);
   }
+
 
   /// Tìm tất cả ngày trong tháng có session
   Set<int> _getSessionDaysInMonth(int year, int month) {

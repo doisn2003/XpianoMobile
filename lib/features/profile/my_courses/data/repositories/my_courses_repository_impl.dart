@@ -45,32 +45,38 @@ class MyCoursesRepositoryImpl implements MyCoursesRepository {
 
   @override
   Future<List<Assignment>> getMockAssignments() async {
-    final jsonString = await rootBundle.loadString('lib/mockdata/assignments.json');
-    final List<dynamic> jsonList = json.decode(jsonString);
-    return jsonList.map((json) {
-      return Assignment(
-        id: json['id'] as String,
-        courseTitle: json['course_title'] as String,
-        title: json['title'] as String,
-        description: json['description'] as String?,
-        dueDate: DateTime.parse(json['due_date'] as String),
-        status: json['status'] as String? ?? 'pending',
-      );
-    }).toList();
+    try {
+      final jsonString = await rootBundle.loadString('lib/mockdata/assignments.json');
+      final List<dynamic> jsonList = json.decode(jsonString);
+      return jsonList.map((j) => Assignment(
+        id: j['id']?.toString() ?? '',
+        courseTitle: j['course_title']?.toString() ?? '',
+        title: j['title']?.toString() ?? '',
+        description: j['description']?.toString(),
+        dueDate: DateTime.tryParse(j['due_date']?.toString() ?? '') ?? DateTime.now(),
+        status: j['status']?.toString() ?? 'pending',
+      )).toList();
+    } catch (e) {
+      print('[MyCoursesRepositoryImpl] Error loading assignments: $e');
+      return [];
+    }
   }
 
   @override
   Future<List<CourseNotification>> getMockNotifications() async {
-    final jsonString = await rootBundle.loadString('lib/mockdata/course_notifications.json');
-    final List<dynamic> jsonList = json.decode(jsonString);
-    return jsonList.map((json) {
-      return CourseNotification(
-        id: json['id'] as String,
-        courseTitle: json['course_title'] as String,
-        message: json['message'] as String,
-        createdAt: DateTime.parse(json['created_at'] as String),
-        isRead: json['is_read'] as bool? ?? false,
-      );
-    }).toList();
+    try {
+      final jsonString = await rootBundle.loadString('lib/mockdata/course_notifications.json');
+      final List<dynamic> jsonList = json.decode(jsonString);
+      return jsonList.map((j) => CourseNotification(
+        id: j['id']?.toString() ?? '',
+        courseTitle: j['course_title']?.toString() ?? '',
+        message: j['message']?.toString() ?? '',
+        createdAt: DateTime.tryParse(j['created_at']?.toString() ?? '') ?? DateTime.now(),
+        isRead: j['is_read'] as bool? ?? false,
+      )).toList();
+    } catch (e) {
+      print('[MyCoursesRepositoryImpl] Error loading notifications: $e');
+      return [];
+    }
   }
 }

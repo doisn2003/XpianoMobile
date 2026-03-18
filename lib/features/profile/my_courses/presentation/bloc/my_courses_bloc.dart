@@ -48,10 +48,14 @@ class MyCoursesBloc extends Bloc<MyCoursesEvent, MyCoursesState> {
       List<CourseNotification> notifications = [];
       try {
         assignments = await repository.getMockAssignments();
-      } catch (_) {}
+      } catch (e) {
+        print('[MyCoursesBloc] Load mock assignments error: $e');
+      }
       try {
         notifications = await repository.getMockNotifications();
-      } catch (_) {}
+      } catch (e) {
+        print('[MyCoursesBloc] Load mock notifications error: $e');
+      }
 
       // 4. Emit loaded state
       final now = DateTime.now();

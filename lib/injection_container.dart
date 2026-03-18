@@ -29,6 +29,8 @@ import 'features/profile/data/repositories/profile_repository_impl.dart';
 import 'features/profile/domain/repositories/profile_repository.dart';
 import 'features/profile/presentation/bloc/edit_profile_bloc.dart';
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
+import 'features/profile/my_courses/domain/repositories/my_courses_repository.dart';
+import 'features/profile/my_courses/data/repositories/my_courses_repository_impl.dart';
 
 final sl = GetIt.instance;
 
@@ -150,5 +152,11 @@ Future<void> init() async {
     authRepository: sl(),
     mediaUploadService: sl(),
   ));
+
+  // --- My Courses ---
+  sl.registerLazySingleton<MyCoursesRepository>(
+    () => MyCoursesRepositoryImpl(courseDataSource: sl()),
+  );
+  // MyCoursesBloc — provided at screen level (không đăng ký global ở đây).
 }
 

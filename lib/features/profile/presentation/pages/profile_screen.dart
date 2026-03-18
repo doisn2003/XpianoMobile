@@ -10,7 +10,7 @@ import 'active_rentals_screen.dart';
 import 'affiliate_screen.dart';
 import 'edit_profile_screen.dart';
 import 'favorites_screen.dart';
-import 'my_courses_screen.dart';
+import '../../my_courses/presentation/pages/my_courses_screen.dart';
 import 'order_history_screen.dart';
 import 'settings_screen.dart';
 import 'package:intl/intl.dart';

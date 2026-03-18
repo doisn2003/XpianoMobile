@@ -1,0 +1,37 @@
+[
+  {
+    "id": "notif_001",
+    "course_title": "Piano cơ bản cho người mới",
+    "message": "Buổi học ngày 20/03 sẽ được dời sang 21/03 do giáo viên bận họp.",
+    "created_at": "2026-03-18T10:30:00+07:00",
+    "is_read": false
+  },
+  {
+    "id": "notif_002",
+    "course_title": "Hòa âm nâng cao",
+    "message": "Tài liệu buổi 5 đã được cập nhật. Vui lòng tải về trước buổi học.",
+    "created_at": "2026-03-17T14:00:00+07:00",
+    "is_read": false
+  },
+  {
+    "id": "notif_003",
+    "course_title": "Piano cơ bản cho người mới",
+    "message": "Giáo viên đã chấm bài tập 'Đọc nốt bài Twinkle Twinkle'. Điểm: 8.5/10.",
+    "created_at": "2026-03-16T09:15:00+07:00",
+    "is_read": true
+  },
+  {
+    "id": "notif_004",
+    "course_title": "Kỹ thuật đệm hát",
+    "message": "Lớp học mới bắt đầu vào tuần tới. Hãy chuẩn bị bài trước nhé!",
+    "created_at": "2026-03-15T16:45:00+07:00",
+    "is_read": true
+  },
+  {
+    "id": "notif_005",
+    "course_title": "Hòa âm nâng cao",
+    "message": "Nhắc nhở: Bài tập 'Phân tích hợp âm Fur Elise' sẽ hết hạn vào ngày mai.",
+    "created_at": "2026-03-17T20:00:00+07:00",
+    "is_read": false
+  }
+]

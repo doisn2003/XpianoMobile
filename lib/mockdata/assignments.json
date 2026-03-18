@@ -1,0 +1,42 @@
+[
+  {
+    "id": "asgn_001",
+    "course_title": "Piano cơ bản cho người mới",
+    "title": "Bài tập luyện gam C trưởng",
+    "description": "Luyện gam C trưởng 2 octave, tay phải và tay trái. Ghi hình và nộp video.",
+    "due_date": "2026-03-25T23:59:00+07:00",
+    "status": "pending"
+  },
+  {
+    "id": "asgn_002",
+    "course_title": "Piano cơ bản cho người mới",
+    "title": "Bài tập đọc nốt bài Twinkle Twinkle",
+    "description": "Đọc và luyện tập bản nhạc Twinkle Twinkle Little Star, BPM 60-80.",
+    "due_date": "2026-03-20T23:59:00+07:00",
+    "status": "submitted"
+  },
+  {
+    "id": "asgn_003",
+    "course_title": "Hòa âm nâng cao",
+    "title": "Phân tích hợp âm bài Fur Elise",
+    "description": "Phân tích tiến trình hợp âm đoạn A của bài Fur Elise và viết báo cáo.",
+    "due_date": "2026-03-18T23:59:00+07:00",
+    "status": "graded"
+  },
+  {
+    "id": "asgn_004",
+    "course_title": "Kỹ thuật đệm hát",
+    "title": "Đệm bài 'Nơi này có anh'",
+    "description": "Sử dụng pattern arpeggio đệm bài hát, ghi âm và nộp file MP3.",
+    "due_date": "2026-03-28T23:59:00+07:00",
+    "status": "pending"
+  },
+  {
+    "id": "asgn_005",
+    "course_title": "Hòa âm nâng cao",
+    "title": "Sáng tác tiến trình 8 ô nhịp",
+    "description": "Sáng tác một đoạn nhạc 8 ô nhịp sử dụng hợp âm I-IV-V-vi.",
+    "due_date": "2026-04-01T23:59:00+07:00",
+    "status": "pending"
+  }
+]

@@ -33,3 +33,11 @@ class PublishTeacherCourse extends TeacherCourseEvent {
   @override
   List<Object?> get props => [courseId];
 }
+
+class DeleteTeacherCourse extends TeacherCourseEvent {
+  final String courseId;
+  const DeleteTeacherCourse(this.courseId);
+
+  @override
+  List<Object?> get props => [courseId];
+}

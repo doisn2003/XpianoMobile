@@ -22,6 +22,9 @@ abstract class TeacherRemoteDataSource {
   /// POST /api/courses/:id/publish
   Future<void> publishCourse(String courseId);
 
+  /// DELETE /api/courses/:id
+  Future<void> deleteCourse(String courseId);
+
   /// GET /api/teacher/stats
   Future<TeacherStats> getStats();
 }
@@ -76,6 +79,11 @@ class TeacherRemoteDataSourceImpl implements TeacherRemoteDataSource {
   @override
   Future<void> publishCourse(String courseId) async {
     await dioClient.post('/courses/$courseId/publish');
+  }
+
+  @override
+  Future<void> deleteCourse(String courseId) async {
+    await dioClient.delete('/courses/$courseId');
   }
 
   @override

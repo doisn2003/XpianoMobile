@@ -35,5 +35,9 @@ class TeacherRepositoryImpl implements TeacherRepository {
       remoteDataSource.publishCourse(courseId);
 
   @override
+  Future<void> deleteCourse(String courseId) =>
+      remoteDataSource.deleteCourse(courseId);
+
+  @override
   Future<TeacherStats> getStats() => remoteDataSource.getStats();
 }

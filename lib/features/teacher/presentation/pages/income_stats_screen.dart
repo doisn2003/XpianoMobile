@@ -29,7 +29,9 @@ class _IncomeStatsBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Thống kê thu nhập')),
-      body: BlocBuilder<TeacherStatsBloc, TeacherStatsState>(
+      body: SafeArea(
+        bottom: true,
+        child: BlocBuilder<TeacherStatsBloc, TeacherStatsState>(
         builder: (context, state) {
           if (state is TeacherStatsLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -113,7 +115,7 @@ class _IncomeStatsBody extends StatelessWidget {
 
           return const SizedBox.shrink();
         },
-      ),
+      )),
     );
   }
 }

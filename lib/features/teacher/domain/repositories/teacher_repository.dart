@@ -10,5 +10,6 @@ abstract class TeacherRepository {
   Future<CourseModel> createCourse(Map<String, dynamic> body);
   Future<CourseModel> updateCourse(String courseId, Map<String, dynamic> body);
   Future<void> publishCourse(String courseId);
+  Future<void> deleteCourse(String courseId);
   Future<TeacherStats> getStats();
 }

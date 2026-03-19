@@ -14,6 +14,7 @@ class TeacherCourseBloc
     on<CreateTeacherCourse>(_onCreate);
     on<UpdateTeacherCourse>(_onUpdate);
     on<PublishTeacherCourse>(_onPublish);
+    on<DeleteTeacherCourse>(_onDelete);
   }
 
   List<CourseModel> _currentCourses = [];
@@ -27,7 +28,7 @@ class TeacherCourseBloc
       _currentCourses = await repository.getMyTeachingCourses();
       emit(TeacherCourseLoaded(_currentCourses));
     } catch (e) {
-      emit(TeacherCourseError(e.toString()));
+      emit(TeacherCourseError(e.toString(), courses: _currentCourses));
     }
   }
 
@@ -42,7 +43,7 @@ class TeacherCourseBloc
       emit(TeacherCourseActionSuccess(
           'Tạo khóa học thành công!', _currentCourses));
     } catch (e) {
-      emit(TeacherCourseError(e.toString()));
+      emit(TeacherCourseError(e.toString(), courses: _currentCourses));
     }
   }
 
@@ -59,7 +60,7 @@ class TeacherCourseBloc
       emit(TeacherCourseActionSuccess(
           'Cập nhật thành công!', _currentCourses));
     } catch (e) {
-      emit(TeacherCourseError(e.toString()));
+      emit(TeacherCourseError(e.toString(), courses: _currentCourses));
     }
   }
 
@@ -75,7 +76,24 @@ class TeacherCourseBloc
       emit(TeacherCourseActionSuccess(
           'Xuất bản khóa học thành công!', _currentCourses));
     } catch (e) {
-      emit(TeacherCourseError(e.toString()));
+      emit(TeacherCourseError(e.toString(), courses: _currentCourses));
+    }
+  }
+
+  Future<void> _onDelete(
+    DeleteTeacherCourse event,
+    Emitter<TeacherCourseState> emit,
+  ) async {
+    emit(TeacherCourseActionLoading(_currentCourses));
+    try {
+      await repository.deleteCourse(event.courseId);
+      _currentCourses = _currentCourses
+          .where((c) => c.id != event.courseId)
+          .toList();
+      emit(TeacherCourseActionSuccess(
+          'Đã xóa khóa học thành công!', _currentCourses));
+    } catch (e) {
+      emit(TeacherCourseError(e.toString(), courses: _currentCourses));
     }
   }
 }

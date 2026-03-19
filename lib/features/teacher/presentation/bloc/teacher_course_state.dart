@@ -40,8 +40,9 @@ class TeacherCourseActionSuccess extends TeacherCourseState {
 
 class TeacherCourseError extends TeacherCourseState {
   final String message;
-  const TeacherCourseError(this.message);
+  final List<CourseModel> courses;
+  const TeacherCourseError(this.message, {this.courses = const []});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, courses];
 }

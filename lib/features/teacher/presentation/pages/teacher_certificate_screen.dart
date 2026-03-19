@@ -32,7 +32,9 @@ class _TeacherCertificateBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Hồ sơ giáo viên')),
-      body: BlocConsumer<TeacherProfileBloc, TeacherProfileState>(
+      body: SafeArea(
+        bottom: true,
+        child: BlocConsumer<TeacherProfileBloc, TeacherProfileState>(
         listener: (context, state) {
           if (state is TeacherProfileSubmitted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -109,7 +111,7 @@ class _TeacherCertificateBody extends StatelessWidget {
 
           return const SizedBox.shrink();
         },
-      ),
+      )),
     );
   }
 

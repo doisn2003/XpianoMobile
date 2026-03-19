@@ -1,15 +1,37 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/course_notification.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../../core/theme/app_theme.dart';
+import '../bloc/my_courses_bloc.dart';
+import '../bloc/my_courses_event.dart';
+import '../bloc/my_courses_state.dart';
 import 'notification_card.dart';
 
-class NotificationTab extends StatelessWidget {
-  final List<CourseNotification> notifications;
+class NotificationTab extends StatefulWidget {
+  final MyCoursesLoaded state;
 
-  const NotificationTab({super.key, required this.notifications});
+  const NotificationTab({super.key, required this.state});
+
+  @override
+  State<NotificationTab> createState() => _NotificationTabState();
+}
+
+class _NotificationTabState extends State<NotificationTab> {
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.state.hasLoadedNotifications && !widget.state.isLoadingNotifications) {
+      context.read<MyCoursesBloc>().add(LoadNotifications());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.state.isLoadingNotifications) {
+      return const Center(child: CircularProgressIndicator(color: AppTheme.primaryGold));
+    }
+
+    final notifications = widget.state.notifications;
     if (notifications.isEmpty) {
       return Center(
         child: Column(

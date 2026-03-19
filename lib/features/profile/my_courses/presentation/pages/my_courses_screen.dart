@@ -88,8 +88,8 @@ class MyCoursesScreen extends StatelessWidget {
                   return TabBarView(
                     children: [
                       ScheduleTab(state: state),
-                      AssignmentTab(assignments: state.assignments),
-                      NotificationTab(notifications: state.notifications),
+                      AssignmentTab(state: state),
+                      NotificationTab(state: state),
                     ],
                   );
                 }

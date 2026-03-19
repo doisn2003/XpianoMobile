@@ -36,3 +36,7 @@ class ChangeMonth extends MyCoursesEvent {
   @override
   List<Object?> get props => [month];
 }
+
+class LoadAssignments extends MyCoursesEvent {}
+
+class LoadNotifications extends MyCoursesEvent {}

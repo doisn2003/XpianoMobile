@@ -248,19 +248,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             _buildMenuItem(
               context,
+              icon: Icons.bookmark_border,
+              title: 'Bài viết đã lưu',
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedPostsScreen()));
+              },
+            ),
+            _buildMenuItem(
+              context,
               icon: Icons.monetization_on,
               title: 'Affiliate',
               //iconColor: Colors.blueAccent,
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const AffiliateScreen()));
-              },
-            ),
-            _buildMenuItem(
-              context,
-              icon: Icons.bookmark_border,
-              title: 'Bài viết đã lưu',
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedPostsScreen()));
               },
             ),
   

@@ -1,16 +1,37 @@
 import 'package:flutter/material.dart';
 
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../domain/entities/assignment.dart';
+import '../bloc/my_courses_bloc.dart';
+import '../bloc/my_courses_event.dart';
+import '../bloc/my_courses_state.dart';
 import 'assignment_card.dart';
 
-class AssignmentTab extends StatelessWidget {
-  final List<Assignment> assignments;
+class AssignmentTab extends StatefulWidget {
+  final MyCoursesLoaded state;
 
-  const AssignmentTab({super.key, required this.assignments});
+  const AssignmentTab({super.key, required this.state});
+
+  @override
+  State<AssignmentTab> createState() => _AssignmentTabState();
+}
+
+class _AssignmentTabState extends State<AssignmentTab> {
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.state.hasLoadedAssignments && !widget.state.isLoadingAssignments) {
+      context.read<MyCoursesBloc>().add(LoadAssignments());
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.state.isLoadingAssignments) {
+      return const Center(child: CircularProgressIndicator(color: AppTheme.primaryGold));
+    }
+
+    final assignments = widget.state.assignments;
     if (assignments.isEmpty) {
       return Center(
         child: Column(

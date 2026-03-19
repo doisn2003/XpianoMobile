@@ -23,6 +23,10 @@ class MyCoursesLoaded extends MyCoursesState {
   final List<CourseSession> sessionsForSelectedDate;
   final List<Assignment> assignments;
   final List<CourseNotification> notifications;
+  final bool isLoadingAssignments;
+  final bool isLoadingNotifications;
+  final bool hasLoadedAssignments;
+  final bool hasLoadedNotifications;
 
   const MyCoursesLoaded({
     required this.courses,
@@ -30,8 +34,12 @@ class MyCoursesLoaded extends MyCoursesState {
     required this.selectedDate,
     required this.displayedMonth,
     required this.sessionsForSelectedDate,
-    required this.assignments,
-    required this.notifications,
+    this.assignments = const [],
+    this.notifications = const [],
+    this.isLoadingAssignments = false,
+    this.isLoadingNotifications = false,
+    this.hasLoadedAssignments = false,
+    this.hasLoadedNotifications = false,
   });
 
   MyCoursesLoaded copyWith({
@@ -42,6 +50,10 @@ class MyCoursesLoaded extends MyCoursesState {
     List<CourseSession>? sessionsForSelectedDate,
     List<Assignment>? assignments,
     List<CourseNotification>? notifications,
+    bool? isLoadingAssignments,
+    bool? isLoadingNotifications,
+    bool? hasLoadedAssignments,
+    bool? hasLoadedNotifications,
   }) {
     return MyCoursesLoaded(
       courses: courses ?? this.courses,
@@ -51,6 +63,10 @@ class MyCoursesLoaded extends MyCoursesState {
       sessionsForSelectedDate: sessionsForSelectedDate ?? this.sessionsForSelectedDate,
       assignments: assignments ?? this.assignments,
       notifications: notifications ?? this.notifications,
+      isLoadingAssignments: isLoadingAssignments ?? this.isLoadingAssignments,
+      isLoadingNotifications: isLoadingNotifications ?? this.isLoadingNotifications,
+      hasLoadedAssignments: hasLoadedAssignments ?? this.hasLoadedAssignments,
+      hasLoadedNotifications: hasLoadedNotifications ?? this.hasLoadedNotifications,
     );
   }
 
@@ -63,6 +79,10 @@ class MyCoursesLoaded extends MyCoursesState {
         sessionsForSelectedDate,
         assignments,
         notifications,
+        isLoadingAssignments,
+        isLoadingNotifications,
+        hasLoadedAssignments,
+        hasLoadedNotifications,
       ];
 }
 

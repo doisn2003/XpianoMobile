@@ -14,6 +14,8 @@ class MyCoursesBloc extends Bloc<MyCoursesEvent, MyCoursesState> {
     on<LoadMyCourses>(_onLoadMyCourses);
     on<SelectDate>(_onSelectDate);
     on<ChangeMonth>(_onChangeMonth);
+    on<LoadAssignments>(_onLoadAssignments);
+    on<LoadNotifications>(_onLoadNotifications);
   }
 
   Future<void> _onLoadMyCourses(
@@ -43,21 +45,7 @@ class MyCoursesBloc extends Bloc<MyCoursesEvent, MyCoursesState> {
         allSessions = sessionsResult.getOrElse(() => []);
       }
 
-      // 3. Lấy mock data (bọc try-catch riêng để không block toàn bộ)
-      List<Assignment> assignments = [];
-      List<CourseNotification> notifications = [];
-      try {
-        assignments = await repository.getMockAssignments();
-      } catch (e) {
-        print('[MyCoursesBloc] Load mock assignments error: $e');
-      }
-      try {
-        notifications = await repository.getMockNotifications();
-      } catch (e) {
-        print('[MyCoursesBloc] Load mock notifications error: $e');
-      }
-
-      // 4. Emit loaded state
+      // 3. Emit loaded state (only courses and sessions)
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
 
@@ -67,8 +55,6 @@ class MyCoursesBloc extends Bloc<MyCoursesEvent, MyCoursesState> {
         selectedDate: today,
         displayedMonth: DateTime(today.year, today.month),
         sessionsForSelectedDate: _filterSessionsByDate(allSessions, today),
-        assignments: assignments,
-        notifications: notifications,
       ));
     } catch (e) {
       emit(MyCoursesError('Đã xảy ra lỗi: ${e.toString()}'));
@@ -92,6 +78,46 @@ class MyCoursesBloc extends Bloc<MyCoursesEvent, MyCoursesState> {
     final currentState = state;
     if (currentState is MyCoursesLoaded) {
       emit(currentState.copyWith(displayedMonth: event.month));
+    }
+  }
+
+  Future<void> _onLoadAssignments(LoadAssignments event, Emitter<MyCoursesState> emit) async {
+    if (state is MyCoursesLoaded) {
+      final currentState = state as MyCoursesLoaded;
+      if (currentState.hasLoadedAssignments || currentState.isLoadingAssignments) return;
+
+      emit(currentState.copyWith(isLoadingAssignments: true));
+      try {
+        final assignments = await repository.getMockAssignments();
+        emit((state as MyCoursesLoaded).copyWith(
+          assignments: assignments,
+          isLoadingAssignments: false,
+          hasLoadedAssignments: true,
+        ));
+      } catch (e) {
+        emit((state as MyCoursesLoaded).copyWith(isLoadingAssignments: false));
+        print('[MyCoursesBloc] Load mock assignments error: $e');
+      }
+    }
+  }
+
+  Future<void> _onLoadNotifications(LoadNotifications event, Emitter<MyCoursesState> emit) async {
+    if (state is MyCoursesLoaded) {
+      final currentState = state as MyCoursesLoaded;
+      if (currentState.hasLoadedNotifications || currentState.isLoadingNotifications) return;
+
+      emit(currentState.copyWith(isLoadingNotifications: true));
+      try {
+        final notifications = await repository.getMockNotifications();
+        emit((state as MyCoursesLoaded).copyWith(
+          notifications: notifications,
+          isLoadingNotifications: false,
+          hasLoadedNotifications: true,
+        ));
+      } catch (e) {
+        emit((state as MyCoursesLoaded).copyWith(isLoadingNotifications: false));
+        print('[MyCoursesBloc] Load mock notifications error: $e');
+      }
     }
   }
 

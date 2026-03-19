@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../domain/entities/post.dart';
 
 abstract class FeedEvent extends Equatable {
   const FeedEvent();
@@ -60,4 +61,23 @@ class FeedSharePost extends FeedEvent {
 
   @override
   List<Object?> get props => [postId];
+}
+
+/// Lưu / Bỏ lưu bài viết (Bookmark)
+class FeedToggleSave extends FeedEvent {
+  final String postId;
+  final bool isCurrentlySaved;
+  const FeedToggleSave(this.postId, this.isCurrentlySaved);
+
+  @override
+  List<Object?> get props => [postId, isCurrentlySaved];
+}
+
+/// Seed posts từ bên ngoài (không gọi API)
+class FeedSeedPosts extends FeedEvent {
+  final List<Post> posts;
+  const FeedSeedPosts(this.posts);
+
+  @override
+  List<Object?> get props => [posts];
 }

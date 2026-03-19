@@ -22,6 +22,10 @@ abstract class PostRemoteDataSource {
   Future<Map<String, dynamic>> getUserPublicProfile(String userId);
   Future<List<PostModel>> getUserPosts(String userId, {String? cursor, int limit = 10});
   Future<void> toggleFollowUser(String userId, bool isCurrentlyFollowing);
+
+  // Bookmark / Save
+  Future<Map<String, dynamic>> toggleSave(String postId, bool isCurrentlySaved);
+  Future<List<PostModel>> getSavedPosts({String? cursor, int limit = 10});
 }
 
 class PostRemoteDataSourceImpl implements PostRemoteDataSource {
@@ -142,5 +146,27 @@ class PostRemoteDataSourceImpl implements PostRemoteDataSource {
     } else {
       await dioClient.post('/social/users/$userId/follow');
     }
+  }
+
+  // ─── Bookmark / Save ───
+
+  @override
+  Future<Map<String, dynamic>> toggleSave(String postId, bool isCurrentlySaved) async {
+    if (isCurrentlySaved) {
+      final response = await dioClient.delete('/posts/$postId/save');
+      return Map<String, dynamic>.from(response.data['data'] ?? {});
+    } else {
+      final response = await dioClient.post('/posts/$postId/save');
+      return Map<String, dynamic>.from(response.data['data'] ?? {});
+    }
+  }
+
+  @override
+  Future<List<PostModel>> getSavedPosts({String? cursor, int limit = 10}) async {
+    final params = <String, dynamic>{'limit': limit};
+    if (cursor != null) params['cursor'] = cursor;
+    final response = await dioClient.get('/posts/saved', queryParameters: params);
+    final data = response.data['data'] as List? ?? [];
+    return data.map((e) => PostModel.fromJson(Map<String, dynamic>.from(e))).toList();
   }
 }

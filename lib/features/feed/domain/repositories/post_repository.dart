@@ -60,4 +60,8 @@ abstract class PostRepository {
   Future<Either<Failure, Map<String, dynamic>>> getUserPublicProfile(String userId);
   Future<Either<Failure, List<Post>>> getUserPosts(String userId, {String? cursor, int limit = 10});
   Future<Either<Failure, bool>> toggleFollowUser(String userId, bool isCurrentlyFollowing);
+
+  // ─── Bookmark / Save ───
+  Future<Either<Failure, bool>> toggleSave(String postId, bool isCurrentlySaved);
+  Future<Either<Failure, List<Post>>> getSavedPosts({String? cursor, int limit = 10});
 }

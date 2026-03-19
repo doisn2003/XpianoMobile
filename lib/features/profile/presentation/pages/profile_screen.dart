@@ -25,6 +25,7 @@ import '../../../teacher/presentation/bloc/teacher_profile_state.dart';
 import '../../../teacher/presentation/pages/teacher_certificate_screen.dart';
 import '../../../teacher/presentation/pages/course_management_screen.dart';
 import '../../../teacher/presentation/pages/income_stats_screen.dart';
+import '../../../feed/presentation/pages/saved_posts_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -252,6 +253,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               //iconColor: Colors.blueAccent,
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const AffiliateScreen()));
+              },
+            ),
+            _buildMenuItem(
+              context,
+              icon: Icons.bookmark_border,
+              title: 'Bài viết đã lưu',
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedPostsScreen()));
               },
             ),
   

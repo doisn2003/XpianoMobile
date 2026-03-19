@@ -19,7 +19,16 @@ import '../../../auth/presentation/bloc/auth_state.dart';
 /// Feed Screen — TikTok-style vuốt dọc full-screen
 class FeedScreen extends StatelessWidget {
   final bool isTabActive;
-  const FeedScreen({super.key, required this.isTabActive});
+  /// Nếu truyền initialPosts, sẽ hiển thị danh sách này thay vì gọi API
+  final List<Post>? initialPosts;
+  final int initialIndex;
+
+  const FeedScreen({
+    super.key,
+    required this.isTabActive,
+    this.initialPosts,
+    this.initialIndex = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,33 +39,56 @@ class FeedScreen extends StatelessWidget {
     }
 
     return BlocProvider(
-      create: (_) => FeedBloc(
-        postRepository: GetIt.instance<PostRepository>(),
-      )..add(FeedLoadRequested(currentUserId: currentUserId)),
-      child: _FeedBody(isTabActive: isTabActive),
+      create: (_) {
+        final bloc = FeedBloc(
+          postRepository: GetIt.instance<PostRepository>(),
+        );
+        if (initialPosts != null && initialPosts!.isNotEmpty) {
+          // Seed bloc with pre-fetched posts, skip API call
+          bloc.add(FeedSeedPosts(initialPosts!));
+        } else {
+          bloc.add(FeedLoadRequested(currentUserId: currentUserId));
+        }
+        return bloc;
+      },
+      child: _FeedBody(isTabActive: isTabActive, initialIndex: initialIndex),
     );
   }
 }
 
 class _FeedBody extends StatefulWidget {
   final bool isTabActive;
-  const _FeedBody({required this.isTabActive});
+  final int initialIndex;
+  const _FeedBody({required this.isTabActive, this.initialIndex = 0});
 
   @override
   State<_FeedBody> createState() => _FeedBodyState();
 }
 
 class _FeedBodyState extends State<_FeedBody> {
-  final PageController _pageController = PageController();
+  late PageController _pageController;
+  final FeedVideoManager _videoManager = FeedVideoManager();
   Timer? _viewTimer;
   int _currentPage = 0;
   bool _initialPreloaded = false;
 
   @override
-  void dispose() {
-    _pageController.dispose();
-    _viewTimer?.cancel();
-    super.dispose();
+  void initState() {
+    super.initState();
+    _currentPage = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialPreloaded) {
+      _initialPreloaded = true;
+      final state = context.read<FeedBloc>().state;
+      if (state is FeedLoaded) {
+        _manageVideoPool(_currentPage, state.posts);
+      }
+    }
   }
 
   void _onPageChanged(int index, List<Post> posts) {
@@ -95,8 +127,16 @@ class _FeedBodyState extends State<_FeedBody> {
       }
     }
     
-    FeedVideoManager().preloadVideos(preloadInfos);
-    FeedVideoManager().disposeOutOfRange(keepIds);
+    _videoManager.preloadVideos(preloadInfos);
+    _videoManager.disposeOutOfRange(keepIds);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _viewTimer?.cancel();
+    _videoManager.disposeAll();
+    super.dispose();
   }
 
   @override
@@ -181,7 +221,7 @@ class _FeedBodyState extends State<_FeedBody> {
 
           return Scaffold(
             body: SafeArea(
-              bottom: false, // Bottom đã có navbar
+              bottom: !widget.isTabActive, // Nếu mở từ ngoài tab (user profile/saved) thì cần bottom SafeArea
               child: PageView.builder(
                 controller: _pageController,
                 scrollDirection: Axis.vertical,
@@ -193,6 +233,7 @@ class _FeedBodyState extends State<_FeedBody> {
                     post: post,
                     isActive: index == _currentPage,
                     isTabActive: widget.isTabActive,
+                    videoManager: _videoManager,
                   );
                 },
               ),
@@ -211,11 +252,13 @@ class _PostPage extends StatefulWidget {
   final Post post;
   final bool isActive;
   final bool isTabActive;
+  final FeedVideoManager videoManager;
 
   const _PostPage({
     required this.post,
     required this.isActive,
     required this.isTabActive,
+    required this.videoManager,
   });
 
   @override
@@ -275,6 +318,7 @@ class _PostPageState extends State<_PostPage> {
           post: widget.post,
           isActive: widget.isActive,
           isTabActive: widget.isTabActive,
+          videoManager: widget.videoManager,
         );
       case 'image':
         return _ImageContent(post: widget.post);
@@ -289,11 +333,13 @@ class _VideoContent extends StatefulWidget {
   final Post post;
   final bool isActive;
   final bool isTabActive;
+  final FeedVideoManager videoManager;
 
   const _VideoContent({
     required this.post,
     required this.isActive,
     required this.isTabActive,
+    required this.videoManager,
   });
 
   @override
@@ -332,8 +378,12 @@ class _VideoContentState extends State<_VideoContent> {
 
     final url = widget.post.mediaUrls.first;
     try {
-      _controller = await FeedVideoManager().getOrCreateController(widget.post.id, url);
+      _controller = await widget.videoManager.getOrCreateController(widget.post.id, url);
       if (mounted) {
+        // Prevent using a controller that might have been disposed before await resolves
+        if (widget.videoManager.getController(widget.post.id) == null) {
+          return;
+        }
         setState(() => _isInitialized = true);
         if (widget.isActive && widget.isTabActive) {
           _controller!.play();

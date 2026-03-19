@@ -9,6 +9,7 @@ import '../../domain/repositories/post_repository.dart';
 import '../bloc/user_profile_bloc.dart';
 import '../bloc/user_profile_event.dart';
 import '../bloc/user_profile_state.dart';
+import '../pages/feed_screen.dart';
 
 void showUserProfileBottomSheet(
   BuildContext context, {
@@ -528,7 +529,21 @@ class _PostsTab extends StatelessWidget {
               child: Center(child: CircularProgressIndicator(color: AppTheme.primaryGold)),
             );
           }
-          return _PostCard(post: state.posts[index]);
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => FeedScreen(
+                    isTabActive: false,
+                    initialPosts: state.posts,
+                    initialIndex: index,
+                  ),
+                ),
+              );
+            },
+            child: _PostCard(post: state.posts[index]),
+          );
         },
       ),
     );
@@ -574,18 +589,20 @@ class _PostCard extends StatelessWidget {
             ),
 
           // Media preview
-          if (post.mediaUrls.isNotEmpty && post.mediaType == 'image')
+          if (post.mediaUrls.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  post.mediaUrls.first,
-                  height: 160,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, e, st) => const SizedBox.shrink(),
-                ),
+                child: post.mediaType == 'video'
+                    ? _buildVideoThumbnail()
+                    : Image.network(
+                        post.mediaUrls.first,
+                        height: 160,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, e, st) => const SizedBox.shrink(),
+                      ),
               ),
             ),
 
@@ -630,8 +647,30 @@ class _PostCard extends StatelessWidget {
     );
   }
 
-  String _timeAgo(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
+  Widget _buildVideoThumbnail() {
+    return Container(
+      height: 160,
+      width: double.infinity,
+      color: Colors.black87,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (post.thumbnailUrl != null && post.thumbnailUrl!.isNotEmpty)
+            Image.network(
+              post.thumbnailUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+            ),
+          const Center(
+            child: Icon(Icons.play_circle_fill, color: Colors.white, size: 48),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _timeAgo(DateTime time) {
+    final diff = DateTime.now().difference(time);
     if (diff.inDays > 365) return '${diff.inDays ~/ 365} năm trước';
     if (diff.inDays > 30) return '${diff.inDays ~/ 30} tháng trước';
     if (diff.inDays > 0) return '${diff.inDays} ngày trước';

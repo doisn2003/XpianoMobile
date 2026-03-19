@@ -40,6 +40,7 @@ class Post extends Equatable {
   final int viewsCount;
   final bool isPinned;
   final bool isLiked;
+  final bool isSaved;
   final PostAuthor? author;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -65,6 +66,7 @@ class Post extends Equatable {
     this.viewsCount = 0,
     this.isPinned = false,
     this.isLiked = false,
+    this.isSaved = false,
     this.author,
     required this.createdAt,
     required this.updatedAt,
@@ -75,7 +77,7 @@ class Post extends Equatable {
         id, userId, content, title, mediaUrls, mediaType, postType,
         hashtags, location, thumbnailUrl, duration, relatedCourseId,
         relatedPianoId, visibility, likesCount, commentsCount,
-        sharesCount, viewsCount, isPinned, isLiked, author,
+        sharesCount, viewsCount, isPinned, isLiked, isSaved, author,
         createdAt, updatedAt,
       ];
 }

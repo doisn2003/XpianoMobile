@@ -15,6 +15,8 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
     on<FeedTrackView>(_onTrackView);
     on<FeedToggleLike>(_onToggleLike);
     on<FeedSharePost>(_onSharePost);
+    on<FeedToggleSave>(_onToggleSave);
+    on<FeedSeedPosts>(_onSeedPosts);
   }
 
   Future<void> _onLoad(FeedLoadRequested event, Emitter<FeedState> emit) async {
@@ -27,6 +29,13 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
         hasReachedEnd: posts.length < _pageSize,
       )),
     );
+  }
+
+  Future<void> _onSeedPosts(FeedSeedPosts event, Emitter<FeedState> emit) async {
+    emit(FeedLoaded(
+      posts: event.posts,
+      hasReachedEnd: true,
+    ));
   }
 
   Future<void> _onLoadMore(FeedLoadMore event, Emitter<FeedState> emit) async {
@@ -81,7 +90,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
                 relatedPianoId: p.relatedPianoId, visibility: p.visibility,
                 likesCount: p.likesCount, commentsCount: p.commentsCount,
                 sharesCount: p.sharesCount, viewsCount: newCount,
-                isPinned: p.isPinned, isLiked: p.isLiked, author: p.author,
+                isPinned: p.isPinned, isLiked: p.isLiked, isSaved: p.isSaved, author: p.author,
                 createdAt: p.createdAt, updatedAt: p.updatedAt,
               );
             }
@@ -109,7 +118,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           likesCount: p.likesCount + (event.isCurrentlyLiked ? -1 : 1),
           commentsCount: p.commentsCount, sharesCount: p.sharesCount,
           viewsCount: p.viewsCount, isPinned: p.isPinned,
-          isLiked: !event.isCurrentlyLiked, author: p.author,
+          isLiked: !event.isCurrentlyLiked, isSaved: p.isSaved, author: p.author,
           createdAt: p.createdAt, updatedAt: p.updatedAt,
         );
       }
@@ -145,7 +154,7 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
                 relatedPianoId: p.relatedPianoId, visibility: p.visibility,
                 likesCount: p.likesCount, commentsCount: p.commentsCount,
                 sharesCount: newCount, viewsCount: p.viewsCount,
-                isPinned: p.isPinned, isLiked: p.isLiked, author: p.author,
+                isPinned: p.isPinned, isLiked: p.isLiked, isSaved: p.isSaved, author: p.author,
                 createdAt: p.createdAt, updatedAt: p.updatedAt,
               );
             }
@@ -154,6 +163,37 @@ class FeedBloc extends Bloc<FeedEvent, FeedState> {
           emit(current.copyWith(posts: updatedPosts));
         }
       },
+    );
+  }
+
+  Future<void> _onToggleSave(FeedToggleSave event, Emitter<FeedState> emit) async {
+    final current = state;
+    if (current is! FeedLoaded) return;
+
+    // Optimistic update
+    final updatedPosts = current.posts.map((p) {
+      if (p.id == event.postId) {
+        return Post(
+          id: p.id, userId: p.userId, content: p.content, title: p.title,
+          mediaUrls: p.mediaUrls, mediaType: p.mediaType, postType: p.postType,
+          hashtags: p.hashtags, location: p.location, thumbnailUrl: p.thumbnailUrl,
+          duration: p.duration, relatedCourseId: p.relatedCourseId,
+          relatedPianoId: p.relatedPianoId, visibility: p.visibility,
+          likesCount: p.likesCount, commentsCount: p.commentsCount,
+          sharesCount: p.sharesCount, viewsCount: p.viewsCount,
+          isPinned: p.isPinned, isLiked: p.isLiked,
+          isSaved: !event.isCurrentlySaved, author: p.author,
+          createdAt: p.createdAt, updatedAt: p.updatedAt,
+        );
+      }
+      return p;
+    }).toList();
+    emit(current.copyWith(posts: updatedPosts));
+
+    final result = await postRepository.toggleSave(event.postId, event.isCurrentlySaved);
+    result.fold(
+      (failure) => emit(current), // Revert
+      (_) {},
     );
   }
 }

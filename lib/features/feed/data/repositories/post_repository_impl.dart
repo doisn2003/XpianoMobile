@@ -215,4 +215,26 @@ class PostRepositoryImpl implements PostRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  // ─── Bookmark / Save ───
+
+  @override
+  Future<Either<Failure, bool>> toggleSave(String postId, bool isCurrentlySaved) async {
+    try {
+      await remoteDataSource.toggleSave(postId, isCurrentlySaved);
+      return Right(!isCurrentlySaved);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<Post>>> getSavedPosts({String? cursor, int limit = 10}) async {
+    try {
+      final posts = await remoteDataSource.getSavedPosts(cursor: cursor, limit: limit);
+      return Right(posts);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

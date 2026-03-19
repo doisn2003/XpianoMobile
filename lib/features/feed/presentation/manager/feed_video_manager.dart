@@ -2,9 +2,7 @@ import 'package:cached_video_player_plus/cached_video_player_plus.dart';
 import 'package:video_player/video_player.dart';
 
 class FeedVideoManager {
-  static final FeedVideoManager _instance = FeedVideoManager._internal();
-  factory FeedVideoManager() => _instance;
-  FeedVideoManager._internal();
+  FeedVideoManager();
 
   final Map<String, CachedVideoPlayerPlus> _players = {};
 

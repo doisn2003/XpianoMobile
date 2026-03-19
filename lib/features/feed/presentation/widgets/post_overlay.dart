@@ -85,6 +85,16 @@ class _InteractionButtons extends StatelessWidget {
     context.read<FeedBloc>().add(FeedToggleLike(post.id, post.isLiked));
   }
 
+  void _handleSave(BuildContext context) async {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthAuthenticated) {
+      final loggedIn = await AuthRequiredDialog.show(context);
+      if (!loggedIn || !context.mounted) return;
+    }
+    if (!context.mounted) return;
+    context.read<FeedBloc>().add(FeedToggleSave(post.id, post.isSaved));
+  }
+
   void _openComments(BuildContext context) async {
     final authState = context.read<AuthBloc>().state;
     if (authState is! AuthAuthenticated) {
@@ -120,23 +130,21 @@ class _InteractionButtons extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // View count
-        _ActionButton(
-          icon: Icons.visibility_outlined,
-          iconColor: iconColor,
-          textColor: textColor,
-          count: post.viewsCount,
-          onTap: () {},
-        ),
-        const SizedBox(height: 16),
-
         // Share
         _ActionButton(
           icon: Icons.share_outlined,
           iconColor: iconColor,
           textColor: textColor,
-          count: post.sharesCount,
           onTap: () => context.read<FeedBloc>().add(FeedSharePost(post.id)),
+        ),
+        const SizedBox(height: 16),
+
+        // Bookmark / Save
+        _ActionButton(
+          icon: post.isSaved ? Icons.bookmark : Icons.bookmark_border,
+          iconColor: post.isSaved ? AppTheme.primaryGold : iconColor,
+          textColor: textColor,
+          onTap: () => _handleSave(context),
         ),
       ],
     );
@@ -148,14 +156,14 @@ class _ActionButton extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final Color textColor;
-  final int count;
+  final int? count;
   final VoidCallback onTap;
 
   const _ActionButton({
     required this.icon,
     required this.iconColor,
     required this.textColor,
-    required this.count,
+    this.count,
     required this.onTap,
   });
 
@@ -167,11 +175,13 @@ class _ActionButton extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: iconColor, size: 28),
-          const SizedBox(height: 2),
-          Text(
-            _formatCount(count),
-            style: GoogleFonts.nunito(color: textColor, fontSize: 12, fontWeight: FontWeight.w500),
-          ),
+          if (count != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              _formatCount(count!),
+              style: GoogleFonts.nunito(color: textColor, fontSize: 12, fontWeight: FontWeight.w500),
+            ),
+          ],
         ],
       ),
     );

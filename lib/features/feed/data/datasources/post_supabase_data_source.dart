@@ -81,7 +81,24 @@ class PostSupabaseDataSourceImpl implements PostSupabaseDataSource {
       }
     }
 
-    // Bước 4: Gắn author và like status vào mỗi post
+    // Bước 3.5: Lấy trạng thái Save của user
+    Set<String> savedPostIds = {};
+    if (currentUserId != null && posts.isNotEmpty) {
+      final postIds = posts.map((p) => p['id']).toList();
+      try {
+        final savedData = await supabaseClient
+            .from('saved_posts')
+            .select('post_id')
+            .eq('user_id', currentUserId)
+            .inFilter('post_id', postIds);
+        
+        savedPostIds = (savedData as List).map((e) => e['post_id'].toString()).toSet();
+      } catch (e) {
+        print('Error fetching saved posts: $e');
+      }
+    }
+
+    // Bước 4: Gắn author và like/save status vào mỗi post
     return posts.map((json) {
       final userId = json['user_id'];
       if (userId != null && authorMap.containsKey(userId)) {
@@ -90,6 +107,7 @@ class PostSupabaseDataSourceImpl implements PostSupabaseDataSource {
       
       final postId = json['id'].toString();
       json['is_liked'] = likedPostIds.contains(postId);
+      json['is_saved'] = savedPostIds.contains(postId);
       
       return PostModel.fromJson(json);
     }).toList();

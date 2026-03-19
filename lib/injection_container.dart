@@ -31,6 +31,9 @@ import 'features/profile/presentation/bloc/edit_profile_bloc.dart';
 import 'features/profile/presentation/bloc/wallet_bloc.dart';
 import 'features/profile/my_courses/domain/repositories/my_courses_repository.dart';
 import 'features/profile/my_courses/data/repositories/my_courses_repository_impl.dart';
+import 'features/teacher/data/datasources/teacher_remote_data_source.dart';
+import 'features/teacher/data/repositories/teacher_repository_impl.dart';
+import 'features/teacher/domain/repositories/teacher_repository.dart';
 
 final sl = GetIt.instance;
 
@@ -158,5 +161,16 @@ Future<void> init() async {
     () => MyCoursesRepositoryImpl(courseDataSource: sl()),
   );
   // MyCoursesBloc — provided at screen level (không đăng ký global ở đây).
+
+  // --- Teacher ---
+  sl.registerLazySingleton<TeacherRemoteDataSource>(
+    () => TeacherRemoteDataSourceImpl(dioClient: sl()),
+  );
+
+  sl.registerLazySingleton<TeacherRepository>(
+    () => TeacherRepositoryImpl(remoteDataSource: sl()),
+  );
+  // TeacherProfileBloc, TeacherCourseBloc, TeacherStatsBloc
+  // được provide ở cấp Screen — không đăng ký global ở đây.
 }
 

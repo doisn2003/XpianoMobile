@@ -87,6 +87,7 @@ Tài liệu này tổng hợp toàn bộ các API Backend của dự án Xpiano,
 - `GET /api/courses/teacher/:teacherId` : Xem danh sách khóa dạy của một giáo viên cụ thể (Tùy chọn Auth).
 
 *Các tính năng cá nhân trong khóa học (Yêu cầu Auth):*
+- `POST /api/teacher/profile`: Tạo mới hồ sơ hoặc cập nhật hồ sơ giáo viên (Dành cho Teacher)
 - `GET /api/courses/me/enrolled` : Danh sách các khóa học Learner đã tham gia (đã mua).
 - `GET /api/courses/me/teaching` : Danh sách các khóa học mình đang dạy (Dành cho Teacher).
 - `GET /api/courses/:id/enrollments` : Xem các thành viên đã tham gia lớp của mình.

@@ -19,9 +19,124 @@ import '../bloc/wallet_bloc.dart';
 import '../bloc/wallet_event.dart';
 import '../bloc/wallet_state.dart';
 import 'wallet_screen.dart';
+import '../../../teacher/presentation/bloc/teacher_profile_bloc.dart';
+import '../../../teacher/presentation/bloc/teacher_profile_event.dart';
+import '../../../teacher/presentation/bloc/teacher_profile_state.dart';
+import '../../../teacher/presentation/pages/teacher_certificate_screen.dart';
+import '../../../teacher/presentation/pages/course_management_screen.dart';
+import '../../../teacher/presentation/pages/income_stats_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  TeacherProfileBloc? _teacherProfileBloc;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Chỉ khởi tạo 1 lần cho teacher: cache verification_status
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated &&
+        authState.user.isTeacher &&
+        _teacherProfileBloc == null) {
+      _teacherProfileBloc = TeacherProfileBloc(repository: sl())
+        ..add(LoadTeacherProfile());
+    }
+  }
+
+  @override
+  void dispose() {
+    _teacherProfileBloc?.close();
+    super.dispose();
+  }
+
+  /// Điều hướng đến tính năng giáo viên — kiểm tra từ cache.
+  void _navigateTeacherFeature(
+      BuildContext context, Widget approvedScreen) {
+    final state = _teacherProfileBloc?.state;
+
+    if (state is TeacherProfileNotFound) {
+      // Chưa gửi hồ sơ bao giờ
+      _showTeacherGateDialog(
+        context,
+        title: 'Đăng ký hồ sơ giáo viên',
+        message:
+            'Bạn cần đăng ký và được phê duyệt hồ sơ trước khi sử dụng tính năng này.',
+        buttonText: 'Đăng ký ngay',
+        destination: const TeacherCertificateScreen(),
+      );
+      return;
+    }
+
+    if (state is TeacherProfileLoaded) {
+      final profile = state.profile;
+      if (profile.isApproved) {
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => approvedScreen));
+        return;
+      }
+      // pending hoặc rejected
+      final isPending = profile.isPending;
+      _showTeacherGateDialog(
+        context,
+        title: isPending ? 'Hồ sơ đang chờ duyệt' : 'Hồ sơ bị từ chối',
+        message: isPending
+            ? 'Hồ sơ của bạn đang được admin xem xét. Vui lòng đợi hoặc cập nhật thêm thông tin.'
+            : 'Hồ sơ của bạn đã bị từ chối. Vui lòng cập nhật và gửi lại.',
+        buttonText: 'Xem hồ sơ',
+        destination: const TeacherCertificateScreen(),
+      );
+      return;
+    }
+
+    // Đang loading hoặc error — navigate thẳng, screen tự hiển thị
+    Navigator.push(
+        context, MaterialPageRoute(builder: (_) => approvedScreen));
+  }
+
+  void _showTeacherGateDialog(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String buttonText,
+    required Widget destination,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(title,
+            style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryGoldDark)),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Đóng'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => destination));
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryGold,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(buttonText),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,17 +262,22 @@ class ProfileScreen extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.upload_file, color: AppTheme.primaryGold),
                 title: const Text('Cập nhật Chứng chỉ'),
-                onTap: () {},
+                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const TeacherCertificateScreen()));
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.create, color: AppTheme.primaryGold),
                 title: const Text('Quản lý khóa học (CMS)'),
-                onTap: () {},
+                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                onTap: () => _navigateTeacherFeature(context, const CourseManagementScreen()),
               ),
               ListTile(
                 leading: const Icon(Icons.bar_chart, color: AppTheme.primaryGold),
                 title: const Text('Thống kê thu nhập'),
-                onTap: () {},
+                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                onTap: () => _navigateTeacherFeature(context, const IncomeStatsScreen()),
               ),
             ],
           ],

@@ -110,17 +110,27 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> registerWithOtp(
       String email, String otp, String password, String fullName, String phone, String role, String dob) async {
     try {
+      // Read cached referral code (set by deep link handler)
+      final cachedReferralCode = sharedPreferences.getString('cached_referral_code');
+
+      final requestData = {
+        'email': email,
+        'token': otp,
+        'password': password,
+        'full_name': fullName,
+        'phone': phone,
+        'role': role,
+        'date_of_birth': dob,
+      };
+
+      // Attach referral_code if available
+      if (cachedReferralCode != null && cachedReferralCode.isNotEmpty) {
+        requestData['referral_code'] = cachedReferralCode;
+      }
+
       final response = await dioClient.post(
         '/auth/register-verify',
-        data: {
-          'email': email,
-          'token': otp,
-          'password': password,
-          'full_name': fullName,
-          'phone': phone,
-          'role': role,
-          'date_of_birth': dob,
-        },
+        data: requestData,
       );
 
       final responseData = response.data['data'];
@@ -129,6 +139,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       // Lưu Token vào SharedPreferences
       await sharedPreferences.setString(AppConstants.tokenKey, token);
+
+      // Clear cached referral code after successful registration
+      if (cachedReferralCode != null) {
+        await sharedPreferences.remove('cached_referral_code');
+      }
 
       return userModel;
     } on DioException catch (e) {
